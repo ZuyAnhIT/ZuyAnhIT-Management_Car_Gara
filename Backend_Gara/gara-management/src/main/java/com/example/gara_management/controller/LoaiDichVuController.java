@@ -60,7 +60,7 @@ public class LoaiDichVuController {
      * @param sortBy Trường để sắp xếp.
      * @param sortDirection Hướng sắp xếp.
      */
-    @GetMapping("")
+    @GetMapping("hienThiDanhSach")
     public ResponseEntity<PageResponseDTO<LoaiDichVuResponseDTO>> getAllServiceTypes(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
@@ -75,4 +75,24 @@ public class LoaiDichVuController {
         return ResponseEntity.ok(responseDTO);
     }
     
+    // API TÌM KIẾM & PHÂN TRANG & SẮP XẾP (API tái sử dụng lại cả hiển thị)
+    /**
+     * Endpoint GET riêng để tìm kiếm loại dịch vụ theo các tiêu chí khác nhau.
+     * URL ví dụ: /api/loaidichvu/search?tenLoai=kiểm tra&trangThai=Hoạt động
+     */
+    @GetMapping("/timKiem") // <-- API riêng biệt
+    public ResponseEntity<PageResponseDTO<LoaiDichVuResponseDTO>> searchServiceTypes(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String sortBy, 
+            @RequestParam(required = false) String sortDirection,
+            @RequestParam(required = false) String tenLoai, 
+            @RequestParam(required = false) String trangThai) { 
+        
+        // Gọi Service
+        PageResponseDTO<LoaiDichVuResponseDTO> responseDTO = 
+                loaiDichVuService.searchServiceTypes(page, size, sortBy, sortDirection, tenLoai, trangThai); // Gọi hàm searchServiceTypes
+        
+        return ResponseEntity.ok(responseDTO);
+    }
 }
