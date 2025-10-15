@@ -2,12 +2,12 @@ package com.example.gara_management.service;
 
 import com.example.gara_management.model.LoaiDichVu;
 import com.example.gara_management.repository.LoaiDichVuRepository;
+import com.example.gara_management.util.JpaSpecificationUtil;
 import com.example.gara_management.util.SortUtils;
 import com.example.gara_management.dto.PageResponseDTO;
 import com.example.gara_management.dto.LoaiDichVuDTO.LoaiDichVuCreateDTO;
 import com.example.gara_management.dto.LoaiDichVuDTO.LoaiDichVuResponseDTO;
-import com.example.gara_management.exception.ResourceAlreadyExistsException; // Sử dụng Exception tùy chỉnh (sẽ tạo ở phần sau)
-import org.springframework.stereotype.Service;
+import com.example.gara_management.exception.ResourceAlreadyExistsException; 
 import org.springframework.transaction.annotation.Transactional;
 
 // Hỗ trợ phân trang
@@ -15,6 +15,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -105,5 +106,43 @@ public class LoaiDichVuService {
         );
     }
 
+
+     // TÌM KIẾM & PHÂN TRANG & SẮP XẾP
+    public PageResponseDTO<LoaiDichVuResponseDTO> searchServiceTypes(
+            int page, int size, String sortBy, String sortDirection,
+            String tenLoai, String trangThai) {
+        
+        // 1. Xây dựng Specification (logic tìm kiếm)
+        Specification<LoaiDichVu> spec = Specification.where(null); 
+        
+        // Tìm kiếm theo tên (LIKE)
+        spec = spec.and(JpaSpecificationUtil.attributeContains("tenLoai", tenLoai));
+        
+        // Tìm kiếm theo trạng thái (EQUAL)
+        spec = spec.and(JpaSpecificationUtil.attributeEquals("trangThai", trangThai));
+
+        // 2. Xây dựng Pageable (Phân trang và Sắp xếp)
+        // Lưu ý: Có thể đặt mặc định sắp xếp khác nếu bạn muốn tìm kiếm có mặc định riêng.
+        Sort sort = SortUtils.createSort(sortBy, sortDirection, "ngayTao", Sort.Direction.DESC);
+        page = Math.max(0, page);
+        size = Math.min(size, 100); 
+        size = Math.max(1, size);
+        
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        // 3. Gọi Repository để tìm kiếm (sử dụng Specification và Pageable)
+        Page<LoaiDichVu> loaiDichVuPage = loaiDichVuRepository.findAll(spec, pageable);
+
+        // 4. Chuyển đổi sang DTO và trả về
+        List<LoaiDichVuResponseDTO> dtos = loaiDichVuPage.getContent().stream()
+                .map(LoaiDichVuResponseDTO::new) 
+                .collect(Collectors.toList());
+        
+        return new PageResponseDTO<>(
+            dtos, loaiDichVuPage.getNumber(), loaiDichVuPage.getSize(), 
+            loaiDichVuPage.getTotalElements(), loaiDichVuPage.getTotalPages(), 
+            loaiDichVuPage.isLast()
+        );
+    }
 
 }
