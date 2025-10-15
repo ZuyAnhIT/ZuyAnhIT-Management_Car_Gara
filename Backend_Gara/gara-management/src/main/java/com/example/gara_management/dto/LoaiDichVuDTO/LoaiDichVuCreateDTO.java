@@ -1,4 +1,5 @@
-package com.example.gara_management.dto;
+package com.example.gara_management.dto.LoaiDichVuDTO;
+
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
