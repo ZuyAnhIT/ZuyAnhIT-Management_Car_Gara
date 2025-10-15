@@ -1,8 +1,10 @@
 package com.example.gara_management.controller;
 
-import com.example.gara_management.dto.LoaiDichVuCreateDTO;
 import com.example.gara_management.model.LoaiDichVu;
 import com.example.gara_management.service.LoaiDichVuService;
+import com.example.gara_management.dto.PageResponseDTO;
+import com.example.gara_management.dto.LoaiDichVuDTO.LoaiDichVuCreateDTO;
+import com.example.gara_management.dto.LoaiDichVuDTO.LoaiDichVuResponseDTO;
 import com.example.gara_management.exception.ResourceAlreadyExistsException;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
@@ -21,13 +23,13 @@ public class LoaiDichVuController {
         this.loaiDichVuService = loaiDichVuService;
     }
 
+
+    // API THÊM MỚI LOẠI DỊCH VỤ
     /**
      * Endpoint POST để thêm loại dịch vụ mới.
      * @param createDTO Dữ liệu đầu vào từ body request, được validated.
      * @return ResponseEntity chứa đối tượng LoaiDichVu đã tạo hoặc thông báo lỗi.
      */
-    
-     // API thêm loại dịch vụ
     @PostMapping("/them")
     public ResponseEntity<?> createLoaiDichVu(@Valid @RequestBody LoaiDichVuCreateDTO createDTO) {
         try {
@@ -49,6 +51,28 @@ public class LoaiDichVuController {
     }
 
 
-    //API hiển thị danh sách loại dịch vụ
+    //API HIỂN THỊ DANH SÁCH LOẠI DỊCH VỤ
+     /**
+     * Endpoint GET để lấy danh sách loại dịch vụ có phân trang và sắp xếp tùy chỉnh.
+     * Mặc định: sắp xếp theo ngayTao (desc).
+     * @param page Số trang (mặc định 0)
+     * @param size Kích thước trang (mặc định 10)
+     * @param sortBy Trường để sắp xếp.
+     * @param sortDirection Hướng sắp xếp.
+     */
+    @GetMapping("")
+    public ResponseEntity<PageResponseDTO<LoaiDichVuResponseDTO>> getAllServiceTypes(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            // Đặt giá trị mặc định cho sortBy và sortDirection
+            @RequestParam(required = false) String sortBy, 
+            @RequestParam(required = false) String sortDirection) { 
+        
+        // Gọi Service với các tham số, Service sẽ tự động dùng mặc định nếu các tham số này null/empty
+        PageResponseDTO<LoaiDichVuResponseDTO> responseDTO = 
+                loaiDichVuService.getAllServiceTypes(page, size, sortBy, sortDirection);
+        
+        return ResponseEntity.ok(responseDTO);
+    }
     
 }
