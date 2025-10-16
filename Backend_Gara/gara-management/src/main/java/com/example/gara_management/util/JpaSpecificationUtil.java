@@ -1,8 +1,12 @@
 package com.example.gara_management.util;
 
 import org.springframework.data.jpa.domain.Specification;
+
+import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.JoinType;
 
 public class JpaSpecificationUtil {
 
@@ -39,4 +43,24 @@ public class JpaSpecificationUtil {
     }
     
     // Bạn có thể thêm các hàm khác như attributeGreaterThan, attributeBetween...
+    /**
+     * Tạo Specification để tìm kiếm LIKE trên một trường của Entity liên quan (JOIN).
+     * @param joinAttribute Tên thuộc tính trong Entity hiện tại để JOIN (ví dụ: "loaiDichVu").
+     * @param field Tên trường trong Entity liên quan (ví dụ: "tenLoai").
+     * @param value Giá trị tìm kiếm.
+     */
+    public static <T, R> Specification<T> attributeContainsJoin(String joinAttribute, String field, String value) {
+        if (value == null || value.trim().isEmpty()) {
+            return (root, query, criteriaBuilder) -> criteriaBuilder.conjunction();
+        }
+        String pattern = "%" + value.toLowerCase() + "%";
+        
+        return (root, query, criteriaBuilder) -> {
+            // Thực hiện JOIN (Mặc định INNER JOIN)
+            Join<T, R> join = root.join(joinAttribute, JoinType.INNER); 
+            
+            // Áp dụng điều kiện LIKE trên trường của Entity đã JOIN
+            return criteriaBuilder.like(criteriaBuilder.lower(join.get(field)), pattern);
+        };
+    }
 }
