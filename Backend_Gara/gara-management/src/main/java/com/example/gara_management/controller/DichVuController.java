@@ -71,4 +71,25 @@ public class DichVuController {
         
         return ResponseEntity.ok(responseDTO);
     }
+
+    // API  TÌM KIẾM & PHÂN TRANG & SẮP XẾP ---
+    /**
+     * Endpoint GET riêng để tìm kiếm dịch vụ theo các tiêu chí khác nhau.
+     * URL ví dụ: /api/dichvu/search?tenDichVu=Thay dầu&trangThai=Hết hàng
+     */
+    @GetMapping("/timKiem") // <-- API riêng biệt cho tìm kiếm
+    public ResponseEntity<PageResponseDTO<DichVuResponseDTO>> searchServices(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String sortBy, 
+            @RequestParam(required = false) String sortDirection,
+            @RequestParam(required = false) String tenDichVu, 
+            @RequestParam(required = false) String tenLoai) { 
+        
+        PageResponseDTO<DichVuResponseDTO> responseDTO = 
+                dichVuService.searchServices(page, size, sortBy, sortDirection, tenDichVu, tenLoai);
+        
+        return ResponseEntity.ok(responseDTO);
+    }
+
 }

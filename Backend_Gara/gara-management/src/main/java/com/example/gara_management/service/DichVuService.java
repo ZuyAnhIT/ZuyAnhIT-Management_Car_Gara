@@ -94,4 +94,33 @@ public class DichVuService {
     }
 
 
+    // HÀM TÌM KIẾM & PHÂN TRANG & SẮP XẾP (Tách biệt) ---
+    /**
+     * Tìm kiếm dịch vụ với các tiêu chí lọc.
+     */
+    public PageResponseDTO<DichVuResponseDTO> searchServices(
+            int page, int size, String sortBy, String sortDirection,
+            String tenDichVu, String tenLoai) {
+        
+        // 1. Xây dựng Specification
+        Specification<DichVu> spec = Specification.where(null); 
+        
+        spec = spec.and(JpaSpecificationUtil.attributeContains("tenDichVu", tenDichVu));
+        spec = spec.and(JpaSpecificationUtil.attributeContainsJoin("loaiDichVu", "tenLoai", tenLoai));
+        // 2. Xây dựng Pageable
+        Sort sort = SortUtils.createSort(sortBy, sortDirection, "ngayTao", Sort.Direction.DESC);
+        page = Math.max(0, page);
+        size = Math.min(size, 100); 
+        size = Math.max(1, size);
+        
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        // 3. Gọi Repository để tìm kiếm (sử dụng Specification và Pageable)
+        Page<DichVu> dichVuPage = dichVuRepository.findAll(spec, pageable);
+
+        // 4. Chuyển đổi sang DTO và trả về
+        return new PageResponseDTO<>(dichVuPage.map(DichVuResponseDTO::new));
+    }
+
+
 }
