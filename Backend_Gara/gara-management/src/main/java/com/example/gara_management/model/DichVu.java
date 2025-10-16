@@ -5,6 +5,8 @@ import lombok.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 @Entity
 @Table(name = "DichVu")
 @Data // Cung cấp Getters, Setters, toString, equals/hashCode
@@ -50,6 +52,7 @@ public class DichVu {
     // Nhiều Dịch vụ thuộc về một Loại Dịch vụ (Many-to-One)
     @ManyToOne(fetch = FetchType.LAZY) // LAZY loading là tốt cho hiệu năng
     @JoinColumn(name = "MaLoai", nullable = false) // Tên cột khóa ngoại trong bảng DichVu
+    @JsonIgnore
     private LoaiDichVu loaiDichVu;
 
     // --- Constructor tiện ích cho việc tạo mới ---
