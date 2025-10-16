@@ -29,29 +29,25 @@ public class KhachHangService {
         this.khachHangRepository = khachHangRepository;
     }
 
-    // 🎯 Hàm ánh xạ sortBy từ FE -> Entity field
-    private String mapSortableField(String sortBy) {
-        if (sortBy == null || sortBy.isBlank()) return "maKhachHang";
-        return switch (sortBy) {
-            case "ten", "tenKhachHang", "name" -> "tenKhachHang";
-            case "loaiKhach", "loaiKH", "type" -> "loaiKhach";
-            case "email" -> "email";
-            case "ngayTao" -> "ngayTao";
-            default -> "maKhachHang";
-        };
-    }
-
-    // 🧠 CREATE
+    /**
+     * 🧠 Thêm mới khách hàng
+     * - Kiểm tra trùng số điện thoại và email
+     * - Lưu dữ liệu mới vào DB
+     */
     @Transactional
-    public KhachHang addCustomer(KhachHangCreateDTO dto) {
+    public KhachHang themKhachHang(KhachHangCreateDTO dto) {
+
+        // 🔍 Kiểm tra trùng số điện thoại
         khachHangRepository.findBySoDienThoai(dto.getSoDienThoai()).ifPresent(kh -> {
-            throw new ResourceAlreadyExistsException("Số điện thoại đã tồn tại: " + dto.getSoDienThoai());
+            throw new ResourceAlreadyExistsException(" So dien thoai ton tai: " + dto.getSoDienThoai());
         });
 
+        // 🔍 Kiểm tra trùng email
         khachHangRepository.findByEmail(dto.getEmail()).ifPresent(kh -> {
-            throw new ResourceAlreadyExistsException("Email đã tồn tại: " + dto.getEmail());
+            throw new ResourceAlreadyExistsException(" Email da ton tai: " + dto.getEmail());
         });
 
+        // 🧱 Chuyển DTO → Entity
         KhachHang newKH = new KhachHang();
         newKH.setTenKhachHang(dto.getTenKhachHang());
         newKH.setSoDienThoai(dto.getSoDienThoai());
