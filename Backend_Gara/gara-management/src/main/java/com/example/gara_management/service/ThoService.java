@@ -7,6 +7,7 @@ import com.example.gara_management.repository.ThoRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Service
 public class ThoService {
     
     private final ThoRepository thoRepository;

@@ -1,10 +1,9 @@
 package com.example.gara_management.dto.ThoDTO;
 
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
 
 @Data
@@ -20,7 +19,8 @@ public class ThoCreateDTO {
     private String chuyenMon;
     
     @NotBlank(message = "Số điện thoại không được để trống")
-    @Pattern(regexp = "\\d{10-15}", message="Số điện thoại khoảng từ 10-15")
+    @Pattern(regexp = "\\d{10,15}", message="Số điện thoại phải từ 10 đến 15 chữ số")
+    @Schema(example = "0912345678", description = "Số điện thoại gồm 10-15 chữ số")
     private String soDienThoai;
 
     @NotBlank(message = "Email không được để trống")
