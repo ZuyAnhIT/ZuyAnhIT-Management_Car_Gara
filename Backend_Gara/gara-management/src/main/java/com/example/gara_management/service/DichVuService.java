@@ -3,6 +3,7 @@ package com.example.gara_management.service;
 import com.example.gara_management.dto.PageResponseDTO;
 import com.example.gara_management.dto.DichVuDTO.DichVuCreateDTO;
 import com.example.gara_management.dto.DichVuDTO.DichVuResponseDTO;
+import com.example.gara_management.dto.DichVuDTO.DichVuUpdateDTO;
 import com.example.gara_management.model.DichVu;
 import com.example.gara_management.model.LoaiDichVu;
 import com.example.gara_management.repository.DichVuRepository;
@@ -16,6 +17,10 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Arrays;
+import java.util.Optional;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -25,7 +30,7 @@ public class DichVuService {
 
     private final DichVuRepository dichVuRepository;
     private final LoaiDichVuRepository loaiDichVuRepository; // Cần dùng Repository của LoaiDichVu
-
+    private static final String[] VALID_TRANG_THAI = {"Còn hàng", "Hết hàng", "Đã xóa"};
     public DichVuService(DichVuRepository dichVuRepository, LoaiDichVuRepository loaiDichVuRepository) {
         this.dichVuRepository = dichVuRepository;
         this.loaiDichVuRepository = loaiDichVuRepository;
@@ -122,5 +127,71 @@ public class DichVuService {
         return new PageResponseDTO<>(dichVuPage.map(DichVuResponseDTO::new));
     }
 
+
+    //HÀM CẬP NHẬT THÔNG TIN DỊCH VỤ
+    /**
+     * Cập nhật thông tin dịch vụ, chỉ ghi đè các trường được gửi (Partial Update).
+     */
+    @Transactional
+    public DichVu updateService(Integer maDichVu, DichVuUpdateDTO updateDTO) {
+        
+        // 1. Tìm Dịch vụ hiện tại
+        DichVu existingService = dichVuRepository.findById(maDichVu)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy Dịch Vụ với Mã: " + maDichVu));
+
+        // --- 2. Cập nhật Tên Dịch Vụ ---
+        String newTenDichVu = updateDTO.getTenDichVu();
+        if (newTenDichVu != null && !newTenDichVu.trim().isEmpty()) {
+            
+            // Kiểm tra trùng tên (trừ chính nó)
+            dichVuRepository.findByTenDichVu(newTenDichVu).ifPresent(dichVu -> {
+                if (!dichVu.getMaDichVu().equals(maDichVu)) {
+                    throw new ResourceAlreadyExistsException("Tên dịch vụ đã tồn tại: " + newTenDichVu);
+                }
+            });
+            existingService.setTenDichVu(newTenDichVu);
+        }
+
+        // --- 3. Cập nhật Loại Dịch Vụ (Tìm theo Tên) ---
+        String newTenLoaiDichVu = updateDTO.getTenLoaiDichVu();
+        if (newTenLoaiDichVu != null && !newTenLoaiDichVu.trim().isEmpty()) {
+            
+            LoaiDichVu newLoaiDichVu = loaiDichVuRepository.findByTenLoai(newTenLoaiDichVu)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy Loại Dịch Vụ với Tên: " + newTenLoaiDichVu));
+            
+            // Kiểm tra trạng thái Loại Dịch Vụ: KHÔNG được là "Đã xóa"
+            if ("Đã xóa".equals(newLoaiDichVu.getTrangThai())) {
+                throw new IllegalArgumentException("Không thể gán Dịch Vụ cho Loại Dịch Vụ đang ở trạng thái 'Đã xóa'.");
+            }
+            
+            existingService.setLoaiDichVu(newLoaiDichVu);
+        }
+
+        // --- 4. Cập nhật Trạng Thái Dịch Vụ ---
+        String newTrangThai = updateDTO.getTrangThai();
+        if (newTrangThai != null && !newTrangThai.trim().isEmpty()) {
+            
+            // Kiểm tra trạng thái hợp lệ
+            if (!Arrays.asList(VALID_TRANG_THAI).contains(newTrangThai)) {
+                throw new IllegalArgumentException("Trạng thái không hợp lệ. Chỉ chấp nhận: " + String.join(", ", VALID_TRANG_THAI));
+            }
+            
+            existingService.setTrangThai(newTrangThai);
+        }
+
+        // --- 5. Cập nhật các trường còn lại (Nếu không null) ---
+        Optional.ofNullable(updateDTO.getMoTa()).ifPresent(existingService::setMoTa);
+        Optional.ofNullable(updateDTO.getAnhDichVu()).ifPresent(existingService::setAnhDichVu);
+        Optional.ofNullable(updateDTO.getSoLuongTon()).ifPresent(existingService::setSoLuongTon);
+        Optional.ofNullable(updateDTO.getSoLuongBan()).ifPresent(existingService::setSoLuongBan);
+        Optional.ofNullable(updateDTO.getGia()).ifPresent(existingService::setGia);
+        Optional.ofNullable(updateDTO.getThoiGianUocTinh()).ifPresent(existingService::setThoiGianUocTinh);
+
+        // 6. Lưu và trả về
+        return dichVuRepository.save(existingService);
+    }
+
+
+    
 
 }

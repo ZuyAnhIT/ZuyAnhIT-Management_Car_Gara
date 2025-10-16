@@ -5,6 +5,7 @@ package com.example.gara_management.controller;
 import com.example.gara_management.dto.PageResponseDTO;
 import com.example.gara_management.dto.DichVuDTO.DichVuCreateDTO;
 import com.example.gara_management.dto.DichVuDTO.DichVuResponseDTO;
+import com.example.gara_management.dto.DichVuDTO.DichVuUpdateDTO;
 import com.example.gara_management.model.DichVu;
 import com.example.gara_management.service.DichVuService;
 
@@ -92,4 +93,28 @@ public class DichVuController {
         return ResponseEntity.ok(responseDTO);
     }
 
+
+    //API CẬP NHẬT THÔNG TIN DỊCH VỤ
+    @PutMapping("/{maDichVu}")
+    public ResponseEntity<?> updateService(
+            @PathVariable Integer maDichVu, 
+            @Valid @RequestBody DichVuUpdateDTO updateDTO) {
+        try {
+            DichVu updatedService = dichVuService.updateService(maDichVu, updateDTO);
+            
+            return ResponseEntity.ok(updatedService);
+            
+        } catch (ResourceNotFoundException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND); // 404
+            
+        } catch (ResourceAlreadyExistsException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT); // 409
+            
+        } catch (IllegalArgumentException e) { // Xử lý lỗi trạng thái/loại dịch vụ không hợp lệ
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST); // 400 Bad Request
+            
+        } catch (Exception e) {
+            return new ResponseEntity<>("Lỗi hệ thống khi cập nhật dịch vụ: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR); // 500
+        }
+    }
 }
