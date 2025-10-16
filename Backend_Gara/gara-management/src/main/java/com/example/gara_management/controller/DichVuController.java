@@ -2,7 +2,9 @@ package com.example.gara_management.controller;
 
 
 
+import com.example.gara_management.dto.PageResponseDTO;
 import com.example.gara_management.dto.DichVuDTO.DichVuCreateDTO;
+import com.example.gara_management.dto.DichVuDTO.DichVuResponseDTO;
 import com.example.gara_management.model.DichVu;
 import com.example.gara_management.service.DichVuService;
 
@@ -50,5 +52,23 @@ public class DichVuController {
             // Lỗi khác (500 Internal Server Error)
             return new ResponseEntity<>("Lỗi hệ thống khi thêm dịch vụ: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
+    }
+
+    //// API  HIỂN THỊ DANH SÁCH & SẮP XẾP 
+    /**
+     * Endpoint GET để lấy danh sách dịch vụ (không có tìm kiếm/lọc).
+     * URL ví dụ: /api/dichvu?sortBy=tenDichVu&sortDirection=asc
+     */
+    @GetMapping("hienThiDanhSach")
+    public ResponseEntity<PageResponseDTO<DichVuResponseDTO>> getAllServices(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String sortBy, 
+            @RequestParam(required = false) String sortDirection) { 
+        
+        PageResponseDTO<DichVuResponseDTO> responseDTO = 
+                dichVuService.getAllServices(page, size, sortBy, sortDirection);
+        
+        return ResponseEntity.ok(responseDTO);
     }
 }
