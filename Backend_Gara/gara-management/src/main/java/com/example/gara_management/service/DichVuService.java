@@ -192,6 +192,35 @@ public class DichVuService {
     }
 
 
+    // HÀM XÓA MỀM DỊCH VỤ
+    /**
+     * Thực hiện xóa mềm (Soft Delete) Dịch Vụ bằng cách thay đổi trạng thái sang "Đã xóa".
+     * @param maDichVu Mã dịch vụ cần xóa.
+     * @return DichVu đã được cập nhật trạng thái.
+     * @throws ResourceNotFoundException Nếu không tìm thấy dịch vụ.
+     * @throws IllegalStateException Nếu dịch vụ đã ở trạng thái "Đã xóa".
+     */
+    @Transactional
+    public DichVu softDeleteService(Integer maDichVu) {
+        
+        //  Giữ logic trong Service và gọi lại từ hàm tiện ích
+        
+        // Hoặc cách đơn giản: giữ nguyên code cũ (đã được viết trước đó)
+        DichVu entity = dichVuRepository.findById(maDichVu)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy Dịch Vụ với Mã: " + maDichVu));
+
+        if ("Đã xóa".equals(entity.getTrangThai())) {
+            throw new IllegalStateException("Loại dịch vụ này đã ở trạng thái 'Đã xóa' và không thể xóa tiếp.");
+        }
+        
+        entity.setTrangThai("Đã xóa");
+        return dichVuRepository.save(entity);
+    }
+
+
+
+
+
     
 
 }

@@ -117,4 +117,33 @@ public class DichVuController {
             return new ResponseEntity<>("Lỗi hệ thống khi cập nhật dịch vụ: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR); // 500
         }
     }
+
+    //API XÓA MỀM DỊCH VỤ
+    /**
+     * Endpoint DELETE để thực hiện xóa mềm (Soft Delete) dịch vụ.
+     * @param maDichVu Mã dịch vụ cần xóa.
+     * @return ResponseEntity chứa đối tượng đã xóa mềm hoặc thông báo lỗi.
+     */
+    @DeleteMapping("/{maDichVu}")
+    public ResponseEntity<?> softDeleteService(@PathVariable Integer maDichVu) {
+        try {
+            // Gọi Service để xóa mềm
+            DichVu deletedService = dichVuService.softDeleteService(maDichVu);
+            
+            // Trả về đối tượng vừa xóa mềm với HTTP Status 200 OK
+            return ResponseEntity.ok(deletedService);
+            
+        } catch (ResourceNotFoundException e) {
+            // Lỗi không tìm thấy (404 Not Found)
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+            
+        } catch (IllegalStateException e) {
+            // Lỗi nghiệp vụ đã bị xóa (409 Conflict)
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT);
+            
+        } catch (Exception e) {
+            // Lỗi khác (500 Internal Server Error)
+            return new ResponseEntity<>("Lỗi hệ thống khi xóa mềm dịch vụ: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 }
