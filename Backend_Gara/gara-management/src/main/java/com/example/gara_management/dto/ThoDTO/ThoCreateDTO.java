@@ -2,8 +2,14 @@ package com.example.gara_management.dto.ThoDTO;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import lombok.*;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
 import jakarta.validation.constraints.*;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class ThoCreateDTO {
     
     @NotBlank(message = "Tên Thợ không được để trống")
@@ -21,5 +27,5 @@ public class ThoCreateDTO {
     @Email(message = "Email không hợp lệ")
     private String email;
 
-    private int kinhNghiem;
+    private Integer kinhNghiem;
 }
