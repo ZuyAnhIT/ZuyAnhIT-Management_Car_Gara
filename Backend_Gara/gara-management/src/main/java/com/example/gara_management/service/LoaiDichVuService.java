@@ -7,7 +7,10 @@ import com.example.gara_management.util.SortUtils;
 import com.example.gara_management.dto.PageResponseDTO;
 import com.example.gara_management.dto.LoaiDichVuDTO.LoaiDichVuCreateDTO;
 import com.example.gara_management.dto.LoaiDichVuDTO.LoaiDichVuResponseDTO;
-import com.example.gara_management.exception.ResourceAlreadyExistsException; 
+import com.example.gara_management.dto.LoaiDichVuDTO.LoaiDichVuUpdateDTO;
+import com.example.gara_management.exception.ResourceAlreadyExistsException;
+import com.example.gara_management.exception.ResourceNotFoundException;
+
 import org.springframework.transaction.annotation.Transactional;
 
 // Hỗ trợ phân trang
@@ -145,4 +148,70 @@ public class LoaiDichVuService {
         );
     }
 
+
+    //HÀM CẬP NHẬT THÔNG TIN lOẠI DỊCH VỤ
+    /**
+     * Cập nhật thông tin loại dịch vụ, chỉ ghi đè các trường được gửi (Partial Update).
+     * @param maLoai Mã loại dịch vụ cần sửa.
+     * @param updateDTO Dữ liệu cập nhật.
+     * @return LoaiDichVu đã được cập nhật.
+     * @throws ResourceNotFoundException Nếu không tìm thấy loại dịch vụ.
+     * @throws ResourceAlreadyExistsException Nếu tên mới bị trùng với loại dịch vụ khác.
+     * @throws IllegalArgumentException Nếu trạng thái được gửi nhưng không hợp lệ.
+     */
+    @Transactional
+    public LoaiDichVu updateServiceType(Integer maLoai, LoaiDichVuUpdateDTO updateDTO) {
+        
+        // 1. Tìm loại dịch vụ theo ID
+        LoaiDichVu existingType = loaiDichVuRepository.findById(maLoai)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy Loại Dịch Vụ với Mã: " + maLoai));
+
+        // --- Cập nhật Tên Loại (Chỉ khi được gửi) ---
+        String newTenLoai = updateDTO.getTenLoai();
+        if (newTenLoai != null && !newTenLoai.trim().isEmpty()) {
+            
+            // Kiểm tra tên loại dịch vụ mới có bị trùng với loại khác (trừ chính nó)
+            loaiDichVuRepository.findByTenLoai(newTenLoai).ifPresent(type -> {
+                if (!type.getMaLoai().equals(maLoai)) {
+                    throw new ResourceAlreadyExistsException("Tên loại dịch vụ đã tồn tại: " + newTenLoai);
+                }
+            });
+            
+            existingType.setTenLoai(newTenLoai);
+        }
+        
+        // --- Cập nhật Trạng Thái (Chỉ khi được gửi) ---
+        String newTrangThai = updateDTO.getTrangThai();
+        if (newTrangThai != null && !newTrangThai.trim().isEmpty()) {
+            
+            // Logic validation trạng thái (Hoạt động hoặc Đã xóa)
+            if (!("Hoạt động".equals(newTrangThai) || "Đã xóa".equals(newTrangThai))) {
+                throw new IllegalArgumentException("Trạng thái không hợp lệ. Chỉ chấp nhận 'Hoạt động' hoặc 'Đã xóa'.");
+            }
+            
+            existingType.setTrangThai(newTrangThai);
+        }
+
+        // 3. Lưu và trả về
+        return loaiDichVuRepository.save(existingType);
+    }
+
+
+    //HÀM XÓA MỀM DỮ LIỆU
+    @Transactional
+    public LoaiDichVu softDeleteServiceType(Integer maLoai) {
+        
+        //  Giữ logic trong Service và gọi lại từ hàm tiện ích
+        
+        // Hoặc cách đơn giản: giữ nguyên code cũ (đã được viết trước đó)
+        LoaiDichVu entity = loaiDichVuRepository.findById(maLoai)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy Loại Dịch Vụ với Mã: " + maLoai));
+
+        if ("Đã xóa".equals(entity.getTrangThai())) {
+            throw new IllegalStateException("Loại dịch vụ này đã ở trạng thái 'Đã xóa' và không thể xóa tiếp.");
+        }
+        
+        entity.setTrangThai("Đã xóa");
+        return loaiDichVuRepository.save(entity);
+    }
 }

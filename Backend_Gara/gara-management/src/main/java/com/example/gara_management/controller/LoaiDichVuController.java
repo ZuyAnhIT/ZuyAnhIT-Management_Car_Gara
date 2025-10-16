@@ -5,7 +5,10 @@ import com.example.gara_management.service.LoaiDichVuService;
 import com.example.gara_management.dto.PageResponseDTO;
 import com.example.gara_management.dto.LoaiDichVuDTO.LoaiDichVuCreateDTO;
 import com.example.gara_management.dto.LoaiDichVuDTO.LoaiDichVuResponseDTO;
+import com.example.gara_management.dto.LoaiDichVuDTO.LoaiDichVuUpdateDTO;
 import com.example.gara_management.exception.ResourceAlreadyExistsException;
+import com.example.gara_management.exception.ResourceNotFoundException;
+
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -94,5 +97,59 @@ public class LoaiDichVuController {
                 loaiDichVuService.searchServiceTypes(page, size, sortBy, sortDirection, tenLoai, trangThai); // Gọi hàm searchServiceTypes
         
         return ResponseEntity.ok(responseDTO);
+    }
+
+    //API CẬP NHẬT THÔNG TIN LOẠI DỊCH VỤ
+    @PutMapping("/{maLoai}")
+    public ResponseEntity<?> updateServiceType(
+            @PathVariable Integer maLoai, 
+            @Valid @RequestBody LoaiDichVuUpdateDTO updateDTO) {
+        try {
+            // Gọi Service để cập nhật
+            LoaiDichVu updatedType = loaiDichVuService.updateServiceType(maLoai, updateDTO);
+            
+            return ResponseEntity.ok(updatedType);
+            
+        } catch (ResourceNotFoundException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND); // 404
+            
+        } catch (ResourceAlreadyExistsException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT); // 409
+            
+        } catch (IllegalArgumentException e) { // <-- Xử lý lỗi trạng thái không hợp lệ
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST); // 400 Bad Request
+            
+        } catch (Exception e) {
+            return new ResponseEntity<>("Lỗi hệ thống khi cập nhật loại dịch vụ: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR); // 500
+        }
+    }
+
+    //API XÓA MỀM LOẠI DỊCH VỤ
+    /**
+     * Endpoint DELETE để thực hiện xóa mềm (Soft Delete) loại dịch vụ.
+     * @param maLoai Mã loại dịch vụ cần xóa.
+     * @return ResponseEntity chứa thông báo thành công hoặc lỗi.
+     */
+    @DeleteMapping("/{maLoai}")
+    public ResponseEntity<?> softDeleteServiceType(@PathVariable Integer maLoai) {
+        try {
+            // Gọi Service để xóa mềm
+            LoaiDichVu deletedType = loaiDichVuService.softDeleteServiceType(maLoai);
+            
+            // Trả về đối tượng vừa xóa mềm với HTTP Status 200 OK
+            return ResponseEntity.ok(deletedType);
+            
+        } catch (ResourceNotFoundException e) {
+            // Lỗi không tìm thấy (404 Not Found)
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+            
+        } catch (IllegalStateException e) {
+            // Lỗi nghiệp vụ đã bị xóa (409 Conflict)
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT);
+            
+        } catch (Exception e) {
+            // Lỗi khác (500 Internal Server Error)
+            return new ResponseEntity<>("Lỗi hệ thống khi xóa mềm loại dịch vụ: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 }
