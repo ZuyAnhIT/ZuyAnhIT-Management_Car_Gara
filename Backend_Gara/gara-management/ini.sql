@@ -248,3 +248,24 @@ INSERT INTO HoaDon (MaPhieu, NgayLapHoaDon, ThoiGianThanhCong, KieuThanhToan, Tr
 INSERT INTO TaiKhoan (TenDangNhap, MatKhau, VaiTro, TrangThai, Email, NgayTao) VALUES
 ('admin', 'admin123', 'Quản lý', 'Hoạt động', 'admin@gara.vn', '2024-01-01 08:00:00'),
 ('nhanvien01', 'nv123456', 'Nhân viên', 'Hoạt động', 'nhanvien01@gara.vn', '2024-01-15 08:00:00');
+
+-- Trigger tự động cập nhật trạng thái dịch vụ
+DELIMITER $$
+
+CREATE TRIGGER trg_cap_nhat_trang_thai_dich_vu
+BEFORE UPDATE ON DichVu
+FOR EACH ROW
+BEGIN
+    -- Kiểm tra xem SoLuongTon có thay đổi hay không
+    IF NEW.SoLuongTon <> OLD.SoLuongTon THEN
+        IF NEW.SoLuongTon = 0 THEN
+            SET NEW.TrangThai = 'Hết hàng';
+        ELSEIF NEW.SoLuongTon <= 3 THEN
+            SET NEW.TrangThai = 'Sắp hết';
+        ELSE
+            SET NEW.TrangThai = 'Còn hàng';
+        END IF;
+    END IF;
+END$$
+
+DELIMITER ;
