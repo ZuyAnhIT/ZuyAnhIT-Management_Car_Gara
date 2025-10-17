@@ -4,7 +4,9 @@ import com.example.gara_management.model.Tho;
 import com.example.gara_management.dto.PageResponseDTO;
 import com.example.gara_management.dto.ThoDTO.ThoCreateDTO;
 import com.example.gara_management.dto.ThoDTO.ThoResponseDTO;
+import com.example.gara_management.dto.ThoDTO.ThoUpdateDTO;
 import com.example.gara_management.exception.ResourceAlreadyExistsException;
+import com.example.gara_management.exception.ResourceNotFoundException;
 import com.example.gara_management.repository.ThoRepository;
 import com.example.gara_management.util.SortUtils;
 
@@ -57,7 +59,28 @@ public class ThoService {
         .stream().map(ThoResponseDTO::new).collect(Collectors.toList());
     return new PageResponseDTO<>(dtos, thoPage.getNumber(), thoPage.getSize(),
         thoPage.getTotalElements(), thoPage.getTotalPages(), thoPage.isLast());
+    }
+
+   @Transactional
+public Tho updateTho(Integer id, ThoUpdateDTO dto) {
+    Tho tho = thoRepository.findById(id)
+        .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy thợ với mã: " + id));
+
+    if (dto.getTenTho() != null) tho.setTenTho(dto.getTenTho());
+    if (dto.getChuyenMon() != null) tho.setChuyenMon(dto.getChuyenMon());
+    if (dto.getSoDienThoai() != null) tho.setSoDienThoai(dto.getSoDienThoai());
+    if (dto.getEmail() != null) tho.setEmail(dto.getEmail());
+    if (dto.getKinhNghiem() != null) tho.setKinhNghiem(dto.getKinhNghiem());
+
+   if (dto.getTrangThai() == null || dto.getTrangThai().isBlank()) {
+    tho.setTrangThai("Hoạt động");
+} else {
+    tho.setTrangThai(dto.getTrangThai());
 }
+
+    return thoRepository.save(tho);
+}
+
 
 
 
