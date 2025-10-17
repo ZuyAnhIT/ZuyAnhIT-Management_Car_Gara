@@ -1,26 +1,70 @@
 package com.example.gara_management.service;
 
 import com.example.gara_management.dto.PageResponseDTO;
+import com.example.gara_management.dto.XeDTO.XeCreateDTO;
 import com.example.gara_management.dto.XeDTO.XeResponseDTO;
+import com.example.gara_management.exception.ResourceAlreadyExistsException;
+import com.example.gara_management.exception.ResourceNotFoundException;
+import com.example.gara_management.model.KhachHang;
 import com.example.gara_management.model.Xe;
+import com.example.gara_management.repository.KhachHangRepository;
 import com.example.gara_management.repository.XeRepository;
 import com.example.gara_management.util.JpaSpecificationUtil;
 import com.example.gara_management.util.SortUtils;
 
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class XeService {
 
     private final XeRepository xeRepository;
+    private final KhachHangRepository khachHangRepository;
 
-    public XeService(XeRepository xeRepository) {
+    public XeService(XeRepository xeRepository, KhachHangRepository khachHangRepository) {
         this.xeRepository = xeRepository;
+        this.khachHangRepository = khachHangRepository;
+    }
+    // HÀM THÊM XE
+    /**
+     * Thêm mới xe, tự động gán Khách Hàng theo MãKhachHang.
+     */
+    @Transactional
+    public Xe addXe(XeCreateDTO createDTO) {
+
+        // 1️⃣ Kiểm tra biển số xe đã tồn tại chưa
+        xeRepository.findByBienSo(createDTO.getBienSo()).ifPresent(xe -> {
+            throw new ResourceAlreadyExistsException("Biển số xe đã tồn tại: " + createDTO.getBienSo());
+        });
+
+        // 2️⃣ Tìm kiếm Khách Hàng theo mã
+        Integer maKhachHang = createDTO.getMaKhachHang();
+        KhachHang khachHang = khachHangRepository.findById(maKhachHang)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Không tìm thấy Khách Hàng với Mã: " + maKhachHang));
+
+        // 3️⃣ Chuyển đổi DTO sang Entity và thiết lập mối quan hệ
+        Xe newXe = new Xe(
+                createDTO.getBienSo(),
+                createDTO.getHangXe(),
+                createDTO.getDongXe(),
+                createDTO.getNamSanXuat(),
+                createDTO.getMauSac(),
+                khachHang // Thiết lập Entity Khách Hàng
+        );
+
+        // 4️⃣ Nếu có trạng thái gửi lên thì cập nhật (nếu null → giữ "Hoạt động")
+        if (createDTO.getTrangThai() != null && !createDTO.getTrangThai().isBlank()) {
+            newXe.setTrangThai(createDTO.getTrangThai());
+        }
+
+        // 5️⃣ Lưu vào Database
+        return xeRepository.save(newXe);
     }
 
     // ================================================================
