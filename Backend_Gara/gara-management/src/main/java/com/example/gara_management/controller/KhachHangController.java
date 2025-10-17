@@ -30,92 +30,103 @@ public class KhachHangController {
     // ================================================================
     /**
      * Endpoint POST để thêm khách hàng mới.
-     * URL: /api/khachhang/them
+     * URL: POST /api/khachhang
      */
-    @PostMapping("/them")
-    public ResponseEntity<?> createCustomer(@Valid @RequestBody KhachHangCreateDTO createDTO) {
+    @PostMapping("them")
+    public ResponseEntity<?> createKhachHang(@Valid @RequestBody KhachHangCreateDTO createDTO) {
         try {
-            KhachHang newCustomer = khachHangService.addCustomer(createDTO);
-            return new ResponseEntity<>(new KhachHangResponseDTO(newCustomer), HttpStatus.CREATED);
-
+            // 1. Gọi Service để thực hiện logic nghiệp vụ
+            KhachHang newKhachHang = khachHangService.themKhachHang(createDTO);
+            
+            // 2. Chuyển Entity sang DTO để trả về
+            KhachHangResponseDTO responseDTO = new KhachHangResponseDTO(newKhachHang);
+            
+            // 3. Trả về đối tượng vừa tạo với HTTP Status 201 Created
+            return new ResponseEntity<>(responseDTO, HttpStatus.CREATED); 
+            
         } catch (ResourceAlreadyExistsException e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT); // 409 Conflict
-
+            // Xử lý lỗi nghiệp vụ: trùng SĐT/Email (409 Conflict)
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT);
+            
         } catch (Exception e) {
-            return new ResponseEntity<>("Lỗi hệ thống khi thêm khách hàng: " + e.getMessage(),
-                    HttpStatus.INTERNAL_SERVER_ERROR);
+            // Xử lý các lỗi khác (500 Internal Server Error)
+            // Cần log lỗi chi tiết ở đây
+            return new ResponseEntity<>("Lỗi hệ thống khi thêm khách hàng.", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
-    // ================================================================
-    // 🧩 2️⃣ API HIỂN THỊ DANH SÁCH KHÁCH HÀNG (PHÂN TRANG + SORT)
-    // ================================================================
-    /**
-     * Endpoint GET để hiển thị danh sách khách hàng
-     * URL: /api/khachhang/hienThiDanhSach?page=0&size=10&sortBy=tenKhachHang&sortDirection=asc
-     */
-    @GetMapping("/hienThiDanhSach")
-    public ResponseEntity<PageResponseDTO<KhachHangResponseDTO>> getAllCustomers(
+    // ----------------------------------------------------------------------
+    // --- API 1: CHỈ HIỂN THỊ DANH SÁCH & SẮP XẾP (Giữ nguyên API cũ) ---
+    // ----------------------------------------------------------------------
+    @GetMapping
+    public ResponseEntity<PageResponseDTO<KhachHangResponseDTO>> getAllKhachHang(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
-            @RequestParam(required = false) String sortBy,
-            @RequestParam(required = false) String sortDirection) {
-
-        PageResponseDTO<KhachHangResponseDTO> response =
-                khachHangService.getAllCustomers(page, size, sortBy, sortDirection);
-        return ResponseEntity.ok(response);
+            @RequestParam(required = false, defaultValue = "maKhachHang") String sortBy, 
+            @RequestParam(required = false, defaultValue = "desc") String sortDirection) { 
+        
+        PageResponseDTO<KhachHangResponseDTO> responseDTO = 
+                khachHangService.getAllKhachHang(page, size, sortBy, sortDirection);
+        
+        return ResponseEntity.ok(responseDTO);
     }
 
-    // ================================================================
-    // 🧩 3️⃣ API TÌM KIẾM KHÁCH HÀNG (SEARCH)
-    // ================================================================
+    // ----------------------------------------------------------------------
+    // --- API 2: TÌM KIẾM, LỌC & PHÂN TRANG (Cập nhật tham số) ---
+    // ----------------------------------------------------------------------
     /**
-     * Endpoint GET riêng để tìm kiếm khách hàng theo các tiêu chí.
-     * URL: /api/khachhang/timKiem?tenKhachHang=An&soDienThoai=0901&loaiKhach=Doanh nghiệp
+     * Endpoint GET riêng để tìm kiếm/lọc khách hàng.
+     * URL ví dụ: /api/khachhang/search?tenKhachHang=Nguyễn Văn A&soDienThoai=0987&trangThai=Hoạt động
      */
-    @GetMapping("/timKiem")
-    public ResponseEntity<PageResponseDTO<KhachHangResponseDTO>> searchCustomers(
+    @GetMapping("/search") 
+    public ResponseEntity<PageResponseDTO<KhachHangResponseDTO>> searchKhachHang(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
-            @RequestParam(required = false) String sortBy,
-            @RequestParam(required = false) String sortDirection,
-            @RequestParam(required = false) String tenKhachHang,
-            @RequestParam(required = false) String soDienThoai,
-            @RequestParam(required = false) String loaiKhach) {
-
-        PageResponseDTO<KhachHangResponseDTO> response =
-                khachHangService.searchCustomers(page, size, sortBy, sortDirection, tenKhachHang, soDienThoai, loaiKhach);
-
-        return ResponseEntity.ok(response);
+            @RequestParam(required = false, defaultValue = "maKhachHang") String sortBy, 
+            @RequestParam(required = false, defaultValue = "desc") String sortDirection,
+            
+            // Cập nhật tham số tìm kiếm
+            @RequestParam(required = false) String tenKhachHang, 
+            @RequestParam(required = false) String soDienThoai, 
+            @RequestParam(required = false) String email, 
+            @RequestParam(required = false) String trangThai, 
+            @RequestParam(required = false) String loaiKhach) { 
+        
+        PageResponseDTO<KhachHangResponseDTO> responseDTO = 
+                khachHangService.searchKhachHang(
+                    page, size, sortBy, sortDirection, 
+                    tenKhachHang, soDienThoai, email, trangThai, loaiKhach
+                );
+        
+        return ResponseEntity.ok(responseDTO);
     }
 
-    // ================================================================
-    // 🧩 4️⃣ API CẬP NHẬT THÔNG TIN KHÁCH HÀNG
-    // ================================================================
     /**
-     * Endpoint PUT để cập nhật thông tin khách hàng.
-     * URL: /api/khachhang/{maKhachHang}
+     * Endpoint PUT để sửa thông tin khách hàng (Partial Update).
+     * URL: PUT /api/khachhang/{maKhachHang}
      */
     @PutMapping("/{maKhachHang}")
-    public ResponseEntity<?> updateCustomer(
-            @PathVariable Integer maKhachHang,
+    public ResponseEntity<?> updateKhachHang(
+            @PathVariable Integer maKhachHang, 
             @Valid @RequestBody KhachHangUpdateDTO updateDTO) {
         try {
-            KhachHang updatedCustomer = khachHangService.updateCustomer(maKhachHang, updateDTO);
-            return ResponseEntity.ok(new KhachHangResponseDTO(updatedCustomer));
-
+            // 1. Gọi Service để cập nhật
+            KhachHang updatedKH = khachHangService.updateKhachHang(maKhachHang, updateDTO);
+            
+            // 2. Chuyển Entity sang DTO để trả về
+            KhachHangResponseDTO responseDTO = new KhachHangResponseDTO(updatedKH);
+            
+            return ResponseEntity.ok(responseDTO);
+            
         } catch (ResourceNotFoundException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND); // 404
-
+            
         } catch (ResourceAlreadyExistsException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT); // 409
-
-        } catch (IllegalArgumentException e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST); // 400
-
+            
         } catch (Exception e) {
-            return new ResponseEntity<>("Lỗi hệ thống khi cập nhật khách hàng: " + e.getMessage(),
-                    HttpStatus.INTERNAL_SERVER_ERROR);
+            // Bao gồm lỗi Validation (kích thước, định dạng)
+            return new ResponseEntity<>("Lỗi hệ thống khi cập nhật khách hàng: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR); // 500
         }
     }
 
