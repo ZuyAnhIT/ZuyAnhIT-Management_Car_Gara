@@ -7,7 +7,10 @@ import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 import com.example.gara_management.exception.ResourceAlreadyExistsException;
 import com.example.gara_management.service.ThoService;
+import com.example.gara_management.dto.PageResponseDTO;
 import com.example.gara_management.dto.ThoDTO.ThoCreateDTO;
+import com.example.gara_management.dto.ThoDTO.ThoResponseDTO;
+
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 @Tag(name = "Quản lý Thợ", description = "API thêm, sửa, xóa, xem thợ trong hệ thống gara")
@@ -32,4 +35,13 @@ public class ThoController {
             return new ResponseEntity<>("Lỗi hệ thống: "+e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+    @GetMapping("/hienThiDanhSach")
+    public ResponseEntity<PageResponseDTO<ThoResponseDTO>> getAllPaged(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String sortBy,
+            @RequestParam(required = false) String sortDirection) {
+        return ResponseEntity.ok(thoService.getAllPaged(page, size, sortBy, sortDirection));
+    }
+
 }   
