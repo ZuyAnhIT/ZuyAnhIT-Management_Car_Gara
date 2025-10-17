@@ -2,6 +2,7 @@ package com.example.gara_management.service;
 
 import com.example.gara_management.dto.PageResponseDTO;
 import com.example.gara_management.dto.XeDTO.XeResponseDTO;
+import com.example.gara_management.exception.ResourceNotFoundException;
 import com.example.gara_management.model.Xe;
 import com.example.gara_management.repository.XeRepository;
 import com.example.gara_management.util.JpaSpecificationUtil;
@@ -14,6 +15,13 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 @Service
 public class XeService {
 
@@ -78,4 +86,26 @@ public class XeService {
     }
 
 
+    // ================================================================
+    // 3️⃣ XÓA MỀM XE
+    // ================================================================
+    /**
+     * Thực hiện xóa mềm (soft delete) xe bằng cách đổi trạng thái sang "Đã xóa".
+     * @param maXe Mã xe cần xóa
+     * @return Xe đã được cập nhật trạng thái
+     * @throws ResourceNotFoundException nếu không tìm thấy xe
+     * @throws IllegalStateException nếu xe đã ở trạng thái "Đã xóa"
+     */
+    @Transactional
+    public Xe softDeleteXe(Integer maXe) {
+        Xe entity = xeRepository.findById(maXe)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy Xe với Mã: " + maXe));
+
+        if ("Đã xóa".equalsIgnoreCase(entity.getTrangThai())) {
+            throw new IllegalStateException("Xe này đã ở trạng thái 'Đã xóa' và không thể xóa tiếp.");
+        }
+
+        entity.setTrangThai("Đã xóa");
+        return xeRepository.save(entity);
+    }
 }
