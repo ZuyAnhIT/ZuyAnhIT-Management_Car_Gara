@@ -35,8 +35,7 @@ public class Xe {
     @Column(name = "TrangThai", length = 50, nullable = false)
     private String trangThai = "Hoạt động"; // Mặc định
 
-    @Column(name = "NgayTao", nullable = false)
-    private LocalDateTime ngayTao = LocalDateTime.now();
+
 
     // --- Mối quan hệ khóa ngoại ---
     // Mỗi Xe thuộc về một Khách Hàng (Many-to-One)
@@ -54,6 +53,5 @@ public class Xe {
         this.mauSac = mauSac;
         this.khachHang = khachHang;
         this.trangThai = "Hoạt động";
-        this.ngayTao = LocalDateTime.now();
     }
 }
