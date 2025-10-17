@@ -62,24 +62,33 @@ public class ThoService {
     }
 
    @Transactional
-public Tho updateTho(Integer id, ThoUpdateDTO dto) {
-    Tho tho = thoRepository.findById(id)
-        .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy thợ với mã: " + id));
+    public Tho updateTho(Integer id, ThoUpdateDTO dto) {
+        Tho tho = thoRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy thợ với mã: " + id));
 
-    if (dto.getTenTho() != null) tho.setTenTho(dto.getTenTho());
-    if (dto.getChuyenMon() != null) tho.setChuyenMon(dto.getChuyenMon());
-    if (dto.getSoDienThoai() != null) tho.setSoDienThoai(dto.getSoDienThoai());
-    if (dto.getEmail() != null) tho.setEmail(dto.getEmail());
-    if (dto.getKinhNghiem() != null) tho.setKinhNghiem(dto.getKinhNghiem());
+        if (dto.getTenTho() != null) tho.setTenTho(dto.getTenTho());
+        if (dto.getChuyenMon() != null) tho.setChuyenMon(dto.getChuyenMon());
+        if (dto.getSoDienThoai() != null) tho.setSoDienThoai(dto.getSoDienThoai());
+        if (dto.getEmail() != null) tho.setEmail(dto.getEmail());
+        if (dto.getKinhNghiem() != null) tho.setKinhNghiem(dto.getKinhNghiem());
 
-   if (dto.getTrangThai() == null || dto.getTrangThai().isBlank()) {
-    tho.setTrangThai("Hoạt động");
-} else {
-    tho.setTrangThai(dto.getTrangThai());
-}
+    if (dto.getTrangThai() == null || dto.getTrangThai().isBlank()) {
+        tho.setTrangThai("Hoạt động");
+    } else {
+        tho.setTrangThai(dto.getTrangThai());
+    }
 
-    return thoRepository.save(tho);
-}
+        return thoRepository.save(tho);
+    }
+    @Transactional
+    public Tho softDeleteTho(Integer id) {
+        Tho tho = thoRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy thợ với mã: " + id));
+        if ("Đã xóa".equals(tho.getTrangThai())) 
+            throw new IllegalStateException("Thợ này đã bị xóa.");
+        tho.setTrangThai("Đã xóa");
+        return thoRepository.save(tho);
+    }
 
 
 

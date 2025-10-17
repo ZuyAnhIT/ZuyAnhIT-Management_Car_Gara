@@ -57,5 +57,14 @@ public class ThoController {
             return new ResponseEntity<>("Lỗi hệ thống: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> softDelete(@PathVariable Integer id){
+        try {
+            return ResponseEntity.ok(thoService.softDeleteTho(id));
+        } catch (ResourceNotFoundException e) {
+        return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+    } catch (IllegalStateException e) {
+        return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT);
+    }
+    }
 }   
