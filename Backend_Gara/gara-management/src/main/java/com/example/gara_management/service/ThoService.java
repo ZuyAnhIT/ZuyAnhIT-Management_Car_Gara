@@ -8,6 +8,7 @@ import com.example.gara_management.dto.ThoDTO.ThoUpdateDTO;
 import com.example.gara_management.exception.ResourceAlreadyExistsException;
 import com.example.gara_management.exception.ResourceNotFoundException;
 import com.example.gara_management.repository.ThoRepository;
+import com.example.gara_management.util.JpaSpecificationUtil;
 import com.example.gara_management.util.SortUtils;
 
 import java.util.List;
@@ -17,6 +18,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -89,6 +91,25 @@ public class ThoService {
         tho.setTrangThai("Đã xóa");
         return thoRepository.save(tho);
     }
+    public PageResponseDTO<ThoResponseDTO> searchTho(
+        int page, int size, String sortBy, String sortDirection,
+        String tenTho, String chuyenMon, String trangThai) {
+
+    Specification<Tho> spec = Specification.where((Specification<Tho>) null)
+        .and(JpaSpecificationUtil.<Tho>attributeContains("tenTho", tenTho))
+        .and(JpaSpecificationUtil.<Tho>attributeContains("chuyenMon", chuyenMon))
+        .and(JpaSpecificationUtil.<Tho>attributeEquals("trangThai", trangThai));
+
+    Sort sort = SortUtils.createSort(sortBy, sortDirection, "ngayVaoLam", Sort.Direction.DESC);
+    Pageable pageable = PageRequest.of(page, size, sort);
+
+    Page<Tho> thoPage = thoRepository.findAll(spec, pageable);
+    List<ThoResponseDTO> dtos = thoPage.getContent()
+        .stream().map(ThoResponseDTO::new).collect(Collectors.toList());
+
+    return new PageResponseDTO<>(dtos, thoPage.getNumber(), thoPage.getSize(),
+            thoPage.getTotalElements(), thoPage.getTotalPages(), thoPage.isLast());
+}
 
 
 

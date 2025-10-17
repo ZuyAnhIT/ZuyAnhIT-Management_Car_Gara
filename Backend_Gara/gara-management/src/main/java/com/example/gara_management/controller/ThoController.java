@@ -67,4 +67,16 @@ public class ThoController {
         return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT);
     }
     }
+    @GetMapping("/timKiem")
+    public ResponseEntity<PageResponseDTO<ThoResponseDTO>> searchTho(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String sortBy,
+            @RequestParam(required = false) String sortDirection,
+            @RequestParam(required = false) String tenTho,
+            @RequestParam(required = false) String chuyenMon,
+            @RequestParam(required = false) String trangThai) {
+        return ResponseEntity.ok(thoService.searchTho(page, size, sortBy, sortDirection, tenTho, chuyenMon, trangThai));
+    }
+
 }   
