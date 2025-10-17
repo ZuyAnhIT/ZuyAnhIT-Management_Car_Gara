@@ -17,7 +17,7 @@ public class ThoResponseDTO {
     private Integer kinhNghiem;
     private LocalDateTime ngayVaoLam;
 
-    private ThoResponseDTO(Tho tho){
+    public ThoResponseDTO(Tho tho){
         this.maTho = tho.getMaTho();
         this.tenTho = tho.getTenTho();
         this.chuyenMon = tho.getChuyenMon();
