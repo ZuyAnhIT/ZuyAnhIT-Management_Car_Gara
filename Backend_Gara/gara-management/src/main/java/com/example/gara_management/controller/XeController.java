@@ -106,4 +106,38 @@ public class XeController {
         }
     }
 
+    // ==========================================================
+    // 🟢 API CẬP NHẬT XE
+    // ==========================================================
+        /**
+         * Endpoint PUT để cập nhật thông tin xe (partial update).
+         * Ví dụ: PUT /api/xe/{maXe}
+         */
+        @PutMapping("/{maXe}")
+        public ResponseEntity<?> updateXe(
+                @PathVariable Integer maXe,
+                @Valid @RequestBody XeUpdateDTO updateDTO) {
+            try {
+                Xe updatedXe = xeService.updateXe(maXe, updateDTO);
+                return ResponseEntity.ok(updatedXe);
+
+            } catch (ResourceNotFoundException e) {
+                // Không tìm thấy xe
+                return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+
+            } catch (ResourceAlreadyExistsException e) {
+                // Biển số bị trùng
+                return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT);
+
+            } catch (IllegalArgumentException e) {
+                // Dữ liệu không hợp lệ (ví dụ: trạng thái sai)
+                return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+
+            } catch (Exception e) {
+                // Lỗi hệ thống
+                return new ResponseEntity<>("Lỗi hệ thống khi cập nhật xe: " + e.getMessage(),
+                        HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+        }
+
 }
