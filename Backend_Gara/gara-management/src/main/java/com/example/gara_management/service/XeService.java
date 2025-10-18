@@ -20,6 +20,8 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Arrays;
+
 @Service
 public class XeService {
 
@@ -122,5 +124,71 @@ public class XeService {
         return xeRepository.save(newXe);
     }
 
+    // ================================================================
+    //   CẬP NHẬT THÔNG TIN XE (UPDATE)
+    // ================================================================
+        /**
+         * Cập nhật thông tin xe (Partial Update)
+         * Chỉ ghi đè các trường có giá trị trong DTO.
+         */
+        @Transactional
+        public Xe updateXe(Integer maXe, XeUpdateDTO updateDTO) {
+
+            // 1. Tìm xe hiện tại
+            Xe existingXe = xeRepository.findById(maXe)
+                    .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy Xe với mã: " + maXe));
+
+            // 2. Kiểm tra và cập nhật Biển số (có kiểm tra trùng)
+            String newBienSo = updateDTO.getBienSo();
+            if (newBienSo != null && !newBienSo.trim().isEmpty()) {
+                xeRepository.findByBienSo(newBienSo).ifPresent(xe -> {
+                    if (!xe.getMaXe().equals(maXe)) {
+                        throw new ResourceAlreadyExistsException("Biển số xe đã tồn tại: " + newBienSo);
+                    }
+                });
+                existingXe.setBienSo(newBienSo);
+            }
+
+            // 3. Cập nhật Hãng xe
+            if (updateDTO.getHangXe() != null && !updateDTO.getHangXe().trim().isEmpty()) {
+                existingXe.setHangXe(updateDTO.getHangXe());
+            }
+
+            // 4. Cập nhật Dòng xe
+            if (updateDTO.getDongXe() != null && !updateDTO.getDongXe().trim().isEmpty()) {
+                existingXe.setDongXe(updateDTO.getDongXe());
+            }
+
+            // 5. Cập nhật Năm sản xuất
+            if (updateDTO.getNamSanXuat() != null && updateDTO.getNamSanXuat() >= 1886) {
+                existingXe.setNamSanXuat(updateDTO.getNamSanXuat());
+            }
+
+            // 6. Cập nhật Màu sắc
+            if (updateDTO.getMauSac() != null && !updateDTO.getMauSac().trim().isEmpty()) {
+                existingXe.setMauSac(updateDTO.getMauSac());
+            }
+
+            // 7. Cập nhật Trạng thái (nếu hợp lệ)
+            if (updateDTO.getTrangThai() != null && !updateDTO.getTrangThai().trim().isEmpty()) {
+                String newStatus = updateDTO.getTrangThai().trim();
+                if (!Arrays.asList("Hoạt động", "Bảo trì", "Ngưng sử dụng", "Đã xóa").contains(newStatus)) {
+                    throw new IllegalArgumentException(
+                            "Trạng thái không hợp lệ. Chỉ chấp nhận: Hoạt động, Bảo trì, Ngưng sử dụng, Đã xóa.");
+                }
+                existingXe.setTrangThai(newStatus);
+            }
+
+            // 8. Cập nhật Khách hàng nếu có
+            if (updateDTO.getMaKhachHang() != null) {
+                KhachHang kh = khachHangRepository.findById(updateDTO.getMaKhachHang())
+                        .orElseThrow(() -> new ResourceNotFoundException(
+                                "Không tìm thấy Khách hàng với mã: " + updateDTO.getMaKhachHang()));
+                existingXe.setKhachHang(kh);
+            }
+
+            // 9. Lưu và trả về
+            return xeRepository.save(existingXe);
+        }
 
 }
