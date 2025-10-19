@@ -6,6 +6,7 @@ import com.example.gara_management.dto.BaoCaoDTO.TongKhachHangDTO;
 import com.example.gara_management.dto.BaoCaoDTO.TongDoanhThuTheoTuanDTO;
 import com.example.gara_management.dto.BaoCaoDTO.DoanhThuTheoNgayDTO;
 import com.example.gara_management.dto.BaoCaoDTO.DoanhThuTheoThangDTO;
+import com.example.gara_management.dto.BaoCaoDTO.DoanhThuTheoNamDTO;
 import com.example.gara_management.repository.BaoCaoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -409,6 +410,98 @@ public class BaoCaoService {
                     .thang("")
                     .nam("")
                     .soTuan(0)
+                    .build();
+        }
+    }
+    
+    /**
+     * Lấy doanh thu theo năm với chi tiết từng quý
+     * @param nam Năm (ví dụ: 2024)
+     * @return DoanhThuTheoNamDTO chứa doanh thu từng quý trong năm
+     */
+    public DoanhThuTheoNamDTO layDoanhThuTheoNam(Integer nam) {
+        try {
+            // Validate năm
+            if (nam == null) {
+                return DoanhThuTheoNamDTO.builder()
+                        .doanhThuTheoQuy(List.of())
+                        .tongDoanhThuNam(BigDecimal.ZERO)
+                        .message("Năm không được để trống")
+                        .nam("")
+                        .soQuy(0)
+                        .build();
+            }
+
+            if (nam < 1900 || nam > 2100) {
+                return DoanhThuTheoNamDTO.builder()
+                        .doanhThuTheoQuy(List.of())
+                        .tongDoanhThuNam(BigDecimal.ZERO)
+                        .message("Năm phải từ 1900 đến 2100")
+                        .nam("")
+                        .soQuy(0)
+                        .build();
+            }
+
+            // Tính doanh thu theo quý đơn giản
+            List<DoanhThuTheoNamDTO.DoanhThuQuy> doanhThuTheoQuy = new ArrayList<>();
+            BigDecimal tongDoanhThuNam = BigDecimal.ZERO;
+            
+            // Tính doanh thu cho từng quý (4 quý)
+            for (int quy = 1; quy <= 4; quy++) {
+                // Tính tháng đầu và cuối của quý
+                int thangDauQuy = (quy - 1) * 3 + 1;
+                int thangCuoiQuy = quy * 3;
+                
+                // Tính ngày đầu và cuối của quý
+                LocalDate ngayDauQuy = LocalDate.of(nam, thangDauQuy, 1);
+                LocalDate ngayCuoiQuy = LocalDate.of(nam, thangCuoiQuy, 1).withDayOfMonth(
+                        LocalDate.of(nam, thangCuoiQuy, 1).lengthOfMonth()
+                );
+                
+                // Tính doanh thu cho quý này
+                LocalDateTime dauQuy = ngayDauQuy.atStartOfDay();
+                LocalDateTime cuoiQuy = ngayCuoiQuy.atTime(23, 59, 59);
+                
+                BigDecimal doanhThuQuy = baoCaoRepository.tinhTongDoanhThuTheoNam(dauQuy, cuoiQuy);
+                tongDoanhThuNam = tongDoanhThuNam.add(doanhThuQuy);
+                
+                // Đếm số hóa đơn của quý này (có thể cải thiện sau)
+                Integer soHoaDonQuy = 0;
+                if (doanhThuQuy.compareTo(BigDecimal.ZERO) > 0) {
+                    soHoaDonQuy = 1; // Tạm thời đếm như vậy
+                }
+                
+                doanhThuTheoQuy.add(DoanhThuTheoNamDTO.DoanhThuQuy.builder()
+                        .quy(quy)
+                        .tuThang("Tháng " + thangDauQuy)
+                        .denThang("Tháng " + thangCuoiQuy)
+                        .doanhThu(doanhThuQuy)
+                        .soHoaDon(soHoaDonQuy)
+                        .moTaQuy("Quý " + quy)
+                        .build());
+            }
+
+            // Kiểm tra nếu không có dữ liệu
+            if (tongDoanhThuNam.compareTo(BigDecimal.ZERO) == 0) {
+                return DoanhThuTheoNamDTO.createEmptyResponse(String.valueOf(nam));
+            }
+
+            // Trả về kết quả thành công
+            return DoanhThuTheoNamDTO.createSuccessResponse(
+                    doanhThuTheoQuy,
+                    tongDoanhThuNam,
+                    String.valueOf(nam),
+                    4
+            );
+
+        } catch (Exception e) {
+            // Xử lý lỗi và trả về response lỗi
+            return DoanhThuTheoNamDTO.builder()
+                    .doanhThuTheoQuy(List.of())
+                    .tongDoanhThuNam(BigDecimal.ZERO)
+                    .message("Lỗi khi lấy doanh thu theo năm: " + e.getMessage())
+                    .nam("")
+                    .soQuy(0)
                     .build();
         }
     }

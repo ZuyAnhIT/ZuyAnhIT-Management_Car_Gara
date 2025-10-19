@@ -6,6 +6,7 @@ import com.example.gara_management.dto.BaoCaoDTO.TongKhachHangDTO;
 import com.example.gara_management.dto.BaoCaoDTO.TongDoanhThuTheoTuanDTO;
 import com.example.gara_management.dto.BaoCaoDTO.DoanhThuTheoNgayDTO;
 import com.example.gara_management.dto.BaoCaoDTO.DoanhThuTheoThangDTO;
+import com.example.gara_management.dto.BaoCaoDTO.DoanhThuTheoNamDTO;
 import com.example.gara_management.service.BaoCaoService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -204,6 +205,42 @@ public class BaoCaoController {
             errorResponse.put("thang", "");
             errorResponse.put("nam", "");
             errorResponse.put("soTuan", 0);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(errorResponse);
+        }
+    }
+    
+    /**
+     * API lấy doanh thu theo năm với chi tiết từng quý
+     * @param nam Năm (ví dụ: 2024)
+     * @return ResponseEntity chứa doanh thu từng quý trong năm
+     */
+    @GetMapping("/doanhthu/theonam")
+    @Operation(summary = "Lấy doanh thu theo năm",
+               description = "Tính doanh thu từng quý trong năm được chỉ định. Trả về tổng doanh thu năm và chi tiết từng quý.")
+    public ResponseEntity<Map<String, Object>> layDoanhThuTheoNam(
+            @Parameter(description = "Năm", example = "2024")
+            @RequestParam Integer nam) {
+
+        try {
+            DoanhThuTheoNamDTO result = baoCaoService.layDoanhThuTheoNam(nam);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("doanhThuTheoQuy", result.getDoanhThuTheoQuy());
+            response.put("tongDoanhThuNam", result.getTongDoanhThuNam());
+            response.put("message", result.getMessage());
+            response.put("nam", result.getNam());
+            response.put("soQuy", result.getSoQuy());
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("doanhThuTheoQuy", List.of());
+            errorResponse.put("tongDoanhThuNam", java.math.BigDecimal.ZERO);
+            errorResponse.put("message", "Lỗi hệ thống khi lấy doanh thu theo năm: " + e.getMessage());
+            errorResponse.put("nam", "");
+            errorResponse.put("soQuy", 0);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(errorResponse);
         }

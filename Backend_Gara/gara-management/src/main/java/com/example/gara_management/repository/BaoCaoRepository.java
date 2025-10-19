@@ -59,4 +59,14 @@ public interface BaoCaoRepository extends JpaRepository<HoaDon, Integer> {
            "ORDER BY DATE(h.thoiGianThanhCong)")
     List<Object[]> layDoanhThuTheoNgayTrongTuan(@Param("startOfWeek") LocalDateTime startOfWeek, @Param("endOfWeek") LocalDateTime endOfWeek);
     
+    /**
+     * Tính tổng doanh thu trong năm
+     * @param startOfYear Ngày đầu năm
+     * @param endOfYear Ngày cuối năm
+     * @return BigDecimal - Tổng doanh thu trong năm
+     */
+    @Query("SELECT COALESCE(SUM(h.tongTien), 0) FROM HoaDon h WHERE h.trangThai = 'Đã thanh toán' " +
+           "AND h.thoiGianThanhCong BETWEEN :startOfYear AND :endOfYear")
+    BigDecimal tinhTongDoanhThuTheoNam(@Param("startOfYear") LocalDateTime startOfYear, @Param("endOfYear") LocalDateTime endOfYear);
+    
 }
