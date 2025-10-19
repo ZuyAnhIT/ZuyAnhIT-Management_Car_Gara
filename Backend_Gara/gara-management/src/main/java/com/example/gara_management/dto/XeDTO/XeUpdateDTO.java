@@ -35,3 +35,4 @@ public class XeUpdateDTO {
     private Integer maKhachHang;
 
 }
+
