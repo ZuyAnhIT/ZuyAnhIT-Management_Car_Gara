@@ -3,6 +3,7 @@ package com.example.gara_management.controller;
 import com.example.gara_management.dto.PageResponseDTO;
 import com.example.gara_management.dto.XeDTO.XeCreateDTO;
 import com.example.gara_management.dto.XeDTO.XeResponseDTO;
+import com.example.gara_management.dto.XeDTO.XeUpdateDTO;
 import com.example.gara_management.exception.ResourceAlreadyExistsException;
 import com.example.gara_management.exception.ResourceNotFoundException;
 import com.example.gara_management.model.Xe;
@@ -106,8 +107,9 @@ public class XeController {
         }
     }
 
+
     // ==========================================================
-    // 🟢 API CẬP NHẬT XE
+    // 🟡 API CẬP NHẬT XE
     // ==========================================================
         /**
          * Endpoint PUT để cập nhật thông tin xe (partial update).
