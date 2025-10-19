@@ -5,6 +5,7 @@ import com.example.gara_management.dto.BaoCaoDTO.TongTonKhoDTO;
 import com.example.gara_management.dto.BaoCaoDTO.TongKhachHangDTO;
 import com.example.gara_management.dto.BaoCaoDTO.TongDoanhThuTheoTuanDTO;
 import com.example.gara_management.dto.BaoCaoDTO.DoanhThuTheoNgayDTO;
+import com.example.gara_management.dto.BaoCaoDTO.DoanhThuTheoThangDTO;
 import com.example.gara_management.service.BaoCaoService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -162,6 +163,47 @@ public class BaoCaoController {
             errorResponse.put("message", "Lỗi hệ thống khi lấy doanh thu theo từng ngày trong tuần: " + e.getMessage());
             errorResponse.put("tuTuan", "");
             errorResponse.put("denTuan", "");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(errorResponse);
+        }
+    }
+    
+    /**
+     * API lấy doanh thu theo tháng với chi tiết từng tuần theo lịch thực tế
+     * @param thang Tháng (1-12)
+     * @param nam Năm (ví dụ: 2024)
+     * @return ResponseEntity chứa doanh thu từng tuần trong tháng
+     */
+    @GetMapping("/doanhthu/theothang")
+    @Operation(summary = "Lấy doanh thu theo tháng",
+               description = "Tính doanh thu từng tuần trong tháng được chỉ định. Trả về tổng doanh thu tháng và chi tiết từng tuần theo lịch thực tế.")
+    public ResponseEntity<Map<String, Object>> layDoanhThuTheoThang(
+            @Parameter(description = "Tháng (1-12)", example = "10")
+            @RequestParam Integer thang,
+            @Parameter(description = "Năm", example = "2024")
+            @RequestParam Integer nam) {
+
+        try {
+            DoanhThuTheoThangDTO result = baoCaoService.layDoanhThuTheoThang(thang, nam);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("doanhThuTheoTuan", result.getDoanhThuTheoTuan());
+            response.put("tongDoanhThuThang", result.getTongDoanhThuThang());
+            response.put("message", result.getMessage());
+            response.put("thang", result.getThang());
+            response.put("nam", result.getNam());
+            response.put("soTuan", result.getSoTuan());
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("doanhThuTheoTuan", List.of());
+            errorResponse.put("tongDoanhThuThang", java.math.BigDecimal.ZERO);
+            errorResponse.put("message", "Lỗi hệ thống khi lấy doanh thu theo tháng: " + e.getMessage());
+            errorResponse.put("thang", "");
+            errorResponse.put("nam", "");
+            errorResponse.put("soTuan", 0);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(errorResponse);
         }

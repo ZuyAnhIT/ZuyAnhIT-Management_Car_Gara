@@ -58,4 +58,5 @@ public interface BaoCaoRepository extends JpaRepository<HoaDon, Integer> {
            "GROUP BY DATE(h.thoiGianThanhCong) " +
            "ORDER BY DATE(h.thoiGianThanhCong)")
     List<Object[]> layDoanhThuTheoNgayTrongTuan(@Param("startOfWeek") LocalDateTime startOfWeek, @Param("endOfWeek") LocalDateTime endOfWeek);
+    
 }

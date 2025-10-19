@@ -5,6 +5,7 @@ import com.example.gara_management.dto.BaoCaoDTO.TongTonKhoDTO;
 import com.example.gara_management.dto.BaoCaoDTO.TongKhachHangDTO;
 import com.example.gara_management.dto.BaoCaoDTO.TongDoanhThuTheoTuanDTO;
 import com.example.gara_management.dto.BaoCaoDTO.DoanhThuTheoNgayDTO;
+import com.example.gara_management.dto.BaoCaoDTO.DoanhThuTheoThangDTO;
 import com.example.gara_management.repository.BaoCaoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -15,6 +16,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.time.DayOfWeek;
 import java.time.LocalDateTime;
+import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -276,6 +278,137 @@ public class BaoCaoService {
                     .message("Lỗi khi lấy doanh thu theo từng ngày trong tuần: " + e.getMessage())
                     .tuTuan("")
                     .denTuan("")
+                    .build();
+        }
+    }
+    
+    /**
+     * Lấy doanh thu theo tháng với chi tiết từng tuần theo lịch thực tế
+     * @param thang Tháng (1-12)
+     * @param nam Năm (ví dụ: 2024)
+     * @return DoanhThuTheoThangDTO chứa doanh thu từng tuần trong tháng
+     */
+    public DoanhThuTheoThangDTO layDoanhThuTheoThang(Integer thang, Integer nam) {
+        try {
+            // Validate tháng và năm
+            if (thang == null || nam == null) {
+                return DoanhThuTheoThangDTO.builder()
+                        .doanhThuTheoTuan(List.of())
+                        .tongDoanhThuThang(BigDecimal.ZERO)
+                        .message("Tháng và năm không được để trống")
+                        .thang("")
+                        .nam("")
+                        .soTuan(0)
+                        .build();
+            }
+
+            if (thang < 1 || thang > 12) {
+                return DoanhThuTheoThangDTO.builder()
+                        .doanhThuTheoTuan(List.of())
+                        .tongDoanhThuThang(BigDecimal.ZERO)
+                        .message("Tháng phải từ 1 đến 12")
+                        .thang("")
+                        .nam("")
+                        .soTuan(0)
+                        .build();
+            }
+
+            if (nam < 1900 || nam > 2100) {
+                return DoanhThuTheoThangDTO.builder()
+                        .doanhThuTheoTuan(List.of())
+                        .tongDoanhThuThang(BigDecimal.ZERO)
+                        .message("Năm phải từ 1900 đến 2100")
+                        .thang("")
+                        .nam("")
+                        .soTuan(0)
+                        .build();
+            }
+
+            // Tạo YearMonth từ tháng và năm
+            YearMonth yearMonth = YearMonth.of(nam, thang);
+
+            // Tính ngày đầu và cuối tháng
+            LocalDate startOfMonth = yearMonth.atDay(1);
+            LocalDate endOfMonth = yearMonth.atEndOfMonth();
+
+            // Tính doanh thu theo tuần đơn giản từ ngày 1 đến ngày cuối tháng
+            List<DoanhThuTheoThangDTO.DoanhThuTuan> doanhThuTheoTuan = new ArrayList<>();
+            BigDecimal tongDoanhThuThang = BigDecimal.ZERO;
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+            
+            // Tính số tuần trong tháng (mỗi tuần 7 ngày)
+            int soNgayTrongThang = endOfMonth.getDayOfMonth();
+            int soTuanTrongThang = (int) Math.ceil(soNgayTrongThang / 7.0);
+            
+            // Tính doanh thu cho từng tuần
+            for (int tuan = 1; tuan <= soTuanTrongThang; tuan++) {
+                // Tính ngày đầu và cuối của tuần
+                int ngayDauTuan = (tuan - 1) * 7 + 1;
+                int ngayCuoiTuan = Math.min(tuan * 7, soNgayTrongThang);
+                
+                LocalDate tuTuan = startOfMonth.withDayOfMonth(ngayDauTuan);
+                LocalDate denTuan = startOfMonth.withDayOfMonth(ngayCuoiTuan);
+                
+                // Tính doanh thu cho tuần này
+                BigDecimal doanhThuTuan = BigDecimal.ZERO;
+                Integer soHoaDonTuan = 0;
+                
+                // Duyệt qua từng ngày trong tuần
+                LocalDate ngayHienTai = tuTuan;
+                while (!ngayHienTai.isAfter(denTuan)) {
+                    // Lấy doanh thu của ngày này
+                    LocalDateTime ngayDauNgay = ngayHienTai.atStartOfDay();
+                    LocalDateTime ngayCuoiNgay = ngayHienTai.atTime(23, 59, 59);
+                    
+                    BigDecimal doanhThuNgay = baoCaoRepository.tinhTongDoanhThuTheoTuan(ngayDauNgay, ngayCuoiNgay);
+                    doanhThuTuan = doanhThuTuan.add(doanhThuNgay);
+                    
+                    // Đếm số hóa đơn của ngày này (có thể cải thiện sau)
+                    if (doanhThuNgay.compareTo(BigDecimal.ZERO) > 0) {
+                        soHoaDonTuan++; // Tạm thời đếm như vậy
+                    }
+                    
+                    ngayHienTai = ngayHienTai.plusDays(1);
+                }
+                
+                tongDoanhThuThang = tongDoanhThuThang.add(doanhThuTuan);
+                
+                doanhThuTheoTuan.add(DoanhThuTheoThangDTO.DoanhThuTuan.builder()
+                        .tuan(tuan)
+                        .tuTuan(tuTuan.format(formatter))
+                        .denTuan(denTuan.format(formatter))
+                        .doanhThu(doanhThuTuan)
+                        .soHoaDon(soHoaDonTuan)
+                        .moTaTuan("Tuần " + tuan)
+                        .build());
+            }
+
+            // Kiểm tra nếu không có dữ liệu
+            if (tongDoanhThuThang.compareTo(BigDecimal.ZERO) == 0) {
+                return DoanhThuTheoThangDTO.createEmptyResponse(
+                        String.valueOf(yearMonth.getMonthValue()),
+                        String.valueOf(yearMonth.getYear())
+                );
+            }
+
+            // Trả về kết quả thành công
+            return DoanhThuTheoThangDTO.createSuccessResponse(
+                    doanhThuTheoTuan,
+                    tongDoanhThuThang,
+                    String.valueOf(yearMonth.getMonthValue()),
+                    String.valueOf(yearMonth.getYear()),
+                    doanhThuTheoTuan.size()
+            );
+
+        } catch (Exception e) {
+            // Xử lý lỗi và trả về response lỗi
+            return DoanhThuTheoThangDTO.builder()
+                    .doanhThuTheoTuan(List.of())
+                    .tongDoanhThuThang(BigDecimal.ZERO)
+                    .message("Lỗi khi lấy doanh thu theo tháng: " + e.getMessage())
+                    .thang("")
+                    .nam("")
+                    .soTuan(0)
                     .build();
         }
     }
