@@ -3,6 +3,7 @@ package com.example.gara_management.service;
 import com.example.gara_management.dto.PageResponseDTO;
 import com.example.gara_management.dto.XeDTO.XeCreateDTO;
 import com.example.gara_management.dto.XeDTO.XeResponseDTO;
+import com.example.gara_management.dto.XeDTO.XeUpdateDTO;
 import com.example.gara_management.exception.ResourceAlreadyExistsException;
 import com.example.gara_management.exception.ResourceNotFoundException;
 import com.example.gara_management.model.KhachHang;
@@ -20,6 +21,8 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Arrays;
+
 @Service
 public class XeService {
 
@@ -32,7 +35,7 @@ public class XeService {
     }
 
     // ================================================================
-    // 1️⃣  HIỂN THỊ DANH SÁCH & SẮP XẾP
+    //   HIỂN THỊ DANH SÁCH & SẮP XẾP
     // ================================================================
     /**
      * Lấy danh sách xe có phân trang và sắp xếp.
@@ -58,7 +61,7 @@ public class XeService {
     }
 
     // ================================================================
-    // 2️⃣  TÌM KIẾM & PHÂN TRANG & SẮP XẾP
+    //   TÌM KIẾM & PHÂN TRANG & SẮP XẾP
     // ================================================================
     /**
      * Tìm kiếm xe theo các tiêu chí:
@@ -86,7 +89,7 @@ public class XeService {
     }
 
     // ================================================================
-    // 3️⃣  THÊM MỚI XE
+    //   THÊM MỚI XE
     // ================================================================
     /**
      * Tạo mới một xe (Create)
@@ -122,5 +125,100 @@ public class XeService {
         return xeRepository.save(newXe);
     }
 
+    // ================================================================
+    //   CẬP NHẬT THÔNG TIN XE (UPDATE)
+    // ================================================================
+        /**
+         * Cập nhật thông tin xe (Partial Update)
+         * Chỉ ghi đè các trường có giá trị trong DTO.
+         */
+        @Transactional
+        public Xe updateXe(Integer maXe, XeUpdateDTO updateDTO) {
+
+            // 1. Tìm xe hiện tại
+            Xe existingXe = xeRepository.findById(maXe)
+                    .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy Xe với mã: " + maXe));
+
+            // 2. Kiểm tra và cập nhật Biển số (có kiểm tra trùng)
+            String newBienSo = updateDTO.getBienSo();
+            if (newBienSo != null && !newBienSo.trim().isEmpty()) {
+                xeRepository.findByBienSo(newBienSo).ifPresent(xe -> {
+                    if (!xe.getMaXe().equals(maXe)) {
+                        throw new ResourceAlreadyExistsException("Biển số xe đã tồn tại: " + newBienSo);
+                    }
+                });
+                existingXe.setBienSo(newBienSo);
+            }
+
+            // 3. Cập nhật Hãng xe
+            if (updateDTO.getHangXe() != null && !updateDTO.getHangXe().trim().isEmpty()) {
+                existingXe.setHangXe(updateDTO.getHangXe());
+            }
+
+            // 4. Cập nhật Dòng xe
+            if (updateDTO.getDongXe() != null && !updateDTO.getDongXe().trim().isEmpty()) {
+                existingXe.setDongXe(updateDTO.getDongXe());
+            }
+
+            // 5. Cập nhật Năm sản xuất
+            if (updateDTO.getNamSanXuat() != null && updateDTO.getNamSanXuat() >= 1886) {
+                existingXe.setNamSanXuat(updateDTO.getNamSanXuat());
+            }
+
+            // 6. Cập nhật Màu sắc
+            if (updateDTO.getMauSac() != null && !updateDTO.getMauSac().trim().isEmpty()) {
+                existingXe.setMauSac(updateDTO.getMauSac());
+            }
+
+            // 7. Cập nhật Trạng thái (nếu hợp lệ)
+            if (updateDTO.getTrangThai() != null && !updateDTO.getTrangThai().trim().isEmpty()) {
+                String newStatus = updateDTO.getTrangThai().trim();
+                if (!Arrays.asList("Hoạt động", "Bảo trì", "Ngưng sử dụng", "Đã xóa").contains(newStatus)) {
+                    throw new IllegalArgumentException(
+                            "Trạng thái không hợp lệ. Chỉ chấp nhận: Hoạt động, Bảo trì, Ngưng sử dụng, Đã xóa.");
+                }
+                existingXe.setTrangThai(newStatus);
+            }
+
+            // 8. Cập nhật Khách hàng nếu có
+            if (updateDTO.getMaKhachHang() != null) {
+                KhachHang kh = khachHangRepository.findById(updateDTO.getMaKhachHang())
+                        .orElseThrow(() -> new ResourceNotFoundException(
+                                "Không tìm thấy Khách hàng với mã: " + updateDTO.getMaKhachHang()));
+                existingXe.setKhachHang(kh);
+            }
+
+            // 9. Lưu và trả về
+            return xeRepository.save(existingXe);
+        }
+
+    // =======================================
+    //  HÀM XÓA MỀM XE
+    // =======================================
+    /**
+     * Xóa mềm (Soft Delete) xe bằng cách đổi trạng thái sang "Đã xóa".
+     * @param maXe Mã xe cần xóa
+     * @return Xe sau khi cập nhật trạng thái
+     * @throws ResourceNotFoundException Nếu không tìm thấy xe
+     * @throws IllegalStateException Nếu xe đã ở trạng thái "Đã xóa"
+     */
+    @Transactional
+    public Xe softDeleteXe(Integer maXe) {
+
+        // 1 Tìm xe theo mã
+        Xe existingXe = xeRepository.findById(maXe)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy xe với mã: " + maXe));
+
+        // 2 Kiểm tra trạng thái hiện tại
+        if ("Đã xóa".equalsIgnoreCase(existingXe.getTrangThai())) {
+            throw new IllegalStateException("Xe này đã ở trạng thái 'Đã xóa' và không thể xóa thêm.");
+        }
+
+        // 3 Cập nhật trạng thái sang "Đã xóa"
+        existingXe.setTrangThai("Đã xóa");
+
+        // 4 Lưu vào cơ sở dữ liệu
+        return xeRepository.save(existingXe);
+    }
 
 }

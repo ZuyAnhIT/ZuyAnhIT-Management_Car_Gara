@@ -3,6 +3,7 @@ package com.example.gara_management.controller;
 import com.example.gara_management.dto.PageResponseDTO;
 import com.example.gara_management.dto.XeDTO.XeCreateDTO;
 import com.example.gara_management.dto.XeDTO.XeResponseDTO;
+import com.example.gara_management.dto.XeDTO.XeUpdateDTO;
 import com.example.gara_management.exception.ResourceAlreadyExistsException;
 import com.example.gara_management.exception.ResourceNotFoundException;
 import com.example.gara_management.model.Xe;
@@ -25,7 +26,7 @@ public class XeController {
     }
 
     // ==========================================================
-    // 🟢 API HIỂN THỊ DANH SÁCH & SẮP XẾP
+    //  API HIỂN THỊ DANH SÁCH & SẮP XẾP
     // ==========================================================
     /**
      * Endpoint GET để lấy danh sách xe (không có tìm kiếm/lọc).
@@ -45,7 +46,7 @@ public class XeController {
     }
 
     // ==========================================================
-    // 🟢 API TÌM KIẾM, PHÂN TRANG & SẮP XẾP
+    //  API TÌM KIẾM, PHÂN TRANG & SẮP XẾP
     // ==========================================================
     /**
      * Endpoint GET để tìm kiếm xe theo các tiêu chí:
@@ -77,7 +78,7 @@ public class XeController {
     }
 
     // ======================
-    // 🟢 API THÊM XE
+    //  API THÊM XE
     // ======================
     /**
      * Endpoint POST để thêm xe mới.
@@ -105,5 +106,72 @@ public class XeController {
                     HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+
+    // ==========================================================
+    //  API CẬP NHẬT XE
+    // ==========================================================
+        /**
+         * Endpoint PUT để cập nhật thông tin xe (partial update).
+         * Ví dụ: PUT /api/xe/{maXe}
+         */
+        @PutMapping("/{maXe}")
+        public ResponseEntity<?> updateXe(
+                @PathVariable Integer maXe,
+                @Valid @RequestBody XeUpdateDTO updateDTO) {
+            try {
+                Xe updatedXe = xeService.updateXe(maXe, updateDTO);
+                return ResponseEntity.ok(updatedXe);
+
+            } catch (ResourceNotFoundException e) {
+                // Không tìm thấy xe
+                return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+
+            } catch (ResourceAlreadyExistsException e) {
+                // Biển số bị trùng
+                return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT);
+
+            } catch (IllegalArgumentException e) {
+                // Dữ liệu không hợp lệ (ví dụ: trạng thái sai)
+                return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+
+            } catch (Exception e) {
+                // Lỗi hệ thống
+                return new ResponseEntity<>("Lỗi hệ thống khi cập nhật xe: " + e.getMessage(),
+                        HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+        }
+
+    // ==========================================================
+    //  API XÓA MỀM XE
+    // ==========================================================
+        /**
+         * Endpoint DELETE để thực hiện xóa mềm (Soft Delete) xe.
+         * @param maXe Mã xe cần xóa.
+         * @return ResponseEntity chứa đối tượng đã xóa mềm hoặc thông báo lỗi.
+         */
+        @DeleteMapping("/{maXe}")
+        public ResponseEntity<?> softDeleteXe(@PathVariable Integer maXe) {
+            try {
+                // Gọi Service để thực hiện xóa mềm
+                Xe deletedXe = xeService.softDeleteXe(maXe);
+
+                // Trả về đối tượng đã được xóa mềm với HTTP Status 200 OK
+                return ResponseEntity.ok(deletedXe);
+
+            } catch (ResourceNotFoundException e) {
+                // Không tìm thấy xe (404 Not Found)
+                return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+
+            } catch (IllegalStateException e) {
+                // Xe đã bị xóa trước đó (409 Conflict)
+                return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT);
+
+            } catch (Exception e) {
+                // Lỗi hệ thống (500 Internal Server Error)
+                return new ResponseEntity<>("Lỗi hệ thống khi xóa mềm xe: " + e.getMessage(),
+                        HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+        }
 
 }
