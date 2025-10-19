@@ -35,7 +35,7 @@ public class XeService {
     }
 
     // ================================================================
-    // 1️⃣  HIỂN THỊ DANH SÁCH & SẮP XẾP
+    //   HIỂN THỊ DANH SÁCH & SẮP XẾP
     // ================================================================
     /**
      * Lấy danh sách xe có phân trang và sắp xếp.
@@ -61,7 +61,7 @@ public class XeService {
     }
 
     // ================================================================
-    // 2️⃣  TÌM KIẾM & PHÂN TRANG & SẮP XẾP
+    //   TÌM KIẾM & PHÂN TRANG & SẮP XẾP
     // ================================================================
     /**
      * Tìm kiếm xe theo các tiêu chí:
@@ -89,7 +89,7 @@ public class XeService {
     }
 
     // ================================================================
-    // 3️⃣  THÊM MỚI XE
+    //   THÊM MỚI XE
     // ================================================================
     /**
      * Tạo mới một xe (Create)
@@ -126,7 +126,7 @@ public class XeService {
     }
 
     // ================================================================
-    // 4️⃣  CẬP NHẬT THÔNG TIN XE (UPDATE)
+    //   CẬP NHẬT THÔNG TIN XE (UPDATE)
     // ================================================================
         /**
          * Cập nhật thông tin xe (Partial Update)
@@ -191,5 +191,34 @@ public class XeService {
             // 9. Lưu và trả về
             return xeRepository.save(existingXe);
         }
+
+    // =======================================
+    //  HÀM XÓA MỀM XE
+    // =======================================
+    /**
+     * Xóa mềm (Soft Delete) xe bằng cách đổi trạng thái sang "Đã xóa".
+     * @param maXe Mã xe cần xóa
+     * @return Xe sau khi cập nhật trạng thái
+     * @throws ResourceNotFoundException Nếu không tìm thấy xe
+     * @throws IllegalStateException Nếu xe đã ở trạng thái "Đã xóa"
+     */
+    @Transactional
+    public Xe softDeleteXe(Integer maXe) {
+
+        // 1 Tìm xe theo mã
+        Xe existingXe = xeRepository.findById(maXe)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy xe với mã: " + maXe));
+
+        // 2 Kiểm tra trạng thái hiện tại
+        if ("Đã xóa".equalsIgnoreCase(existingXe.getTrangThai())) {
+            throw new IllegalStateException("Xe này đã ở trạng thái 'Đã xóa' và không thể xóa thêm.");
+        }
+
+        // 3 Cập nhật trạng thái sang "Đã xóa"
+        existingXe.setTrangThai("Đã xóa");
+
+        // 4 Lưu vào cơ sở dữ liệu
+        return xeRepository.save(existingXe);
+    }
 
 }
