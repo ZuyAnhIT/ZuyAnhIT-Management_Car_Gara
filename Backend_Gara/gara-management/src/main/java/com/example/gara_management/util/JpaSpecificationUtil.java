@@ -63,4 +63,31 @@ public class JpaSpecificationUtil {
             return criteriaBuilder.like(criteriaBuilder.lower(join.get(field)), pattern);
         };
     }
+
+    /**
+     * Tạo Specification để tìm kiếm theo giá trị trong khoảng (ví dụ: TongTien).
+     * @param field Tên trường trong Entity.
+     * @param min Giá trị tối thiểu (bao gồm).
+     * @param max Giá trị tối đa (bao gồm).
+     * @return Specification áp dụng điều kiện BETWEEN.
+     */
+    public static <T, Y extends Comparable<? super Y>> Specification<T> attributeBetween(
+            String field, Y min, Y max) {
+        
+        return (root, query, criteriaBuilder) -> {
+            Path<Y> path = root.get(field);
+            
+            if (min != null && max != null) {
+                return criteriaBuilder.between(path, min, max);
+            }
+            if (min != null) {
+                return criteriaBuilder.greaterThanOrEqualTo(path, min);
+            }
+            if (max != null) {
+                return criteriaBuilder.lessThanOrEqualTo(path, max);
+            }
+            return criteriaBuilder.conjunction();
+        };
+    }
+    
 }
