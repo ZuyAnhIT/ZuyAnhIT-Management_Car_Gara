@@ -65,4 +65,26 @@ public class BaoCaoController {
                     .body(errorResponse);
         }
     }
+    
+    /**
+     * API lấy tổng số lượng khách hàng từ bảng KhachHang
+     * @return ResponseEntity chứa tổng số lượng khách hàng
+     */
+    @GetMapping("/tongkhachhang")
+    @Operation(summary = "Lấy tổng số lượng khách hàng", 
+               description = "Tính tổng số lượng khách hàng từ bảng KhachHang trong hệ thống")
+    public ResponseEntity<Map<String, Long>> layTongSoLuongKhachHang() {
+        try {
+            TongTonKhoDTO result = baoCaoService.layTongSoLuongKhachHang();
+            Map<String, Long> response = new HashMap<>();
+            response.put("tongKhachHang", result.getTongSoLuongTon());
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            Map<String, Long> errorResponse = new HashMap<>();
+            errorResponse.put("tongKhachHang", 0L);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(errorResponse);
+        }
+    }
 }

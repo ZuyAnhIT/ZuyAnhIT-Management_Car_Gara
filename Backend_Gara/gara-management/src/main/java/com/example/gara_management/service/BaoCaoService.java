@@ -66,4 +66,36 @@ public class BaoCaoService {
                     .build();
         }
     }
+    
+    /**
+     * Lấy tổng số lượng khách hàng từ bảng KhachHang
+     * @return TongTonKhoDTO chứa tổng số lượng khách hàng (tái sử dụng DTO)
+     */
+    public TongTonKhoDTO layTongSoLuongKhachHang() {
+        try {
+            // Lấy tổng số lượng khách hàng từ database
+            Long tongSoLuongKhachHang = baoCaoRepository.tinhTongSoLuongKhachHang();
+            
+            // Kiểm tra nếu không có dữ liệu
+            if (tongSoLuongKhachHang == 0) {
+                return TongTonKhoDTO.builder()
+                        .tongSoLuongTon(0L)
+                        .message("Không có khách hàng nào trong hệ thống")
+                        .build();
+            }
+            
+            // Trả về kết quả thành công
+            return TongTonKhoDTO.builder()
+                    .tongSoLuongTon(tongSoLuongKhachHang)
+                    .message("Lấy tổng số lượng khách hàng thành công")
+                    .build();
+            
+        } catch (Exception e) {
+            // Xử lý lỗi và trả về response lỗi
+            return TongTonKhoDTO.builder()
+                    .tongSoLuongTon(0L)
+                    .message("Lỗi khi lấy tổng số lượng khách hàng: " + e.getMessage())
+                    .build();
+        }
+    }
 }

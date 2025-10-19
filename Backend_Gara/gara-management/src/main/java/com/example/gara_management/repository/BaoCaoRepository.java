@@ -22,4 +22,11 @@ public interface BaoCaoRepository extends JpaRepository<HoaDon, Integer> {
      */
     @Query("SELECT COALESCE(SUM(d.soLuongTon), 0) FROM DichVu d")
     Long tinhTongSoLuongTon();
+    
+    /**
+     * Tính tổng số lượng khách hàng từ bảng KhachHang
+     * @return Long - Tổng số lượng khách hàng
+     */
+    @Query("SELECT COUNT(k) FROM KhachHang k")
+    Long tinhTongSoLuongKhachHang();
 }
