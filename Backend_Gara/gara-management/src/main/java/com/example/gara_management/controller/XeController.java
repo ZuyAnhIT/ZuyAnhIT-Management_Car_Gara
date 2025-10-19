@@ -26,7 +26,7 @@ public class XeController {
     }
 
     // ==========================================================
-    // 🟢 API HIỂN THỊ DANH SÁCH & SẮP XẾP
+    //  API HIỂN THỊ DANH SÁCH & SẮP XẾP
     // ==========================================================
     /**
      * Endpoint GET để lấy danh sách xe (không có tìm kiếm/lọc).
@@ -46,7 +46,7 @@ public class XeController {
     }
 
     // ==========================================================
-    // 🟢 API TÌM KIẾM, PHÂN TRANG & SẮP XẾP
+    //  API TÌM KIẾM, PHÂN TRANG & SẮP XẾP
     // ==========================================================
     /**
      * Endpoint GET để tìm kiếm xe theo các tiêu chí:
@@ -78,7 +78,7 @@ public class XeController {
     }
 
     // ======================
-    // 🟢 API THÊM XE
+    //  API THÊM XE
     // ======================
     /**
      * Endpoint POST để thêm xe mới.
@@ -109,7 +109,7 @@ public class XeController {
 
 
     // ==========================================================
-    // 🟡 API CẬP NHẬT XE
+    //  API CẬP NHẬT XE
     // ==========================================================
         /**
          * Endpoint PUT để cập nhật thông tin xe (partial update).
@@ -142,5 +142,36 @@ public class XeController {
             }
         }
 
+    // ==========================================================
+    //  API XÓA MỀM XE
+    // ==========================================================
+        /**
+         * Endpoint DELETE để thực hiện xóa mềm (Soft Delete) xe.
+         * @param maXe Mã xe cần xóa.
+         * @return ResponseEntity chứa đối tượng đã xóa mềm hoặc thông báo lỗi.
+         */
+        @DeleteMapping("/{maXe}")
+        public ResponseEntity<?> softDeleteXe(@PathVariable Integer maXe) {
+            try {
+                // Gọi Service để thực hiện xóa mềm
+                Xe deletedXe = xeService.softDeleteXe(maXe);
+
+                // Trả về đối tượng đã được xóa mềm với HTTP Status 200 OK
+                return ResponseEntity.ok(deletedXe);
+
+            } catch (ResourceNotFoundException e) {
+                // Không tìm thấy xe (404 Not Found)
+                return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+
+            } catch (IllegalStateException e) {
+                // Xe đã bị xóa trước đó (409 Conflict)
+                return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT);
+
+            } catch (Exception e) {
+                // Lỗi hệ thống (500 Internal Server Error)
+                return new ResponseEntity<>("Lỗi hệ thống khi xóa mềm xe: " + e.getMessage(),
+                        HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+        }
 
 }
