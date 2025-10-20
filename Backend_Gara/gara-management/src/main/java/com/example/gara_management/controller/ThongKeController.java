@@ -13,6 +13,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+// Import DTO cho báo cáo doanh thu tháng
+import com.example.gara_management.dto.BaoCaoThongKeDTO.BaoCaoDoanhThuThangDTO;
 // Import RequestParam để nhận tham số từ URL
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -76,6 +78,36 @@ public class ThongKeController {
             // Trả về lỗi 500 Internal Server Error
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(ApiResponse.error("Lỗi hệ thống khi lấy báo cáo doanh thu tuần: " + e.getMessage()));
+        }
+    }
+    // ================================================================
+    //  API BÁO CÁO DOANH THU THÁNG
+    // ================================================================
+
+    /**
+     * Endpoint GET để lấy báo cáo doanh thu chi tiết của một tháng.
+     * API này nhận vào năm và tháng và sẽ trả về báo cáo cho các tuần có doanh thu trong tháng đó.
+     *
+     * @param nam   Năm cần xem báo cáo. Ví dụ: 2024.
+     * @param thang Tháng cần xem báo cáo (từ 1 đến 12). Ví dụ: 10.
+     * @return Một đối tượng ResponseEntity chứa ApiResponse.
+     *         - Thành công: Trả về mã 200 (OK) và dữ liệu báo cáo.
+     *         - Lỗi tham số: Trả về mã 400 (Bad Request).
+     *         - Lỗi hệ thống: Trả về mã 500 (Internal Server Error).
+     *
+     * URL ví dụ: GET http://localhost:8082/api/thongKe/bao-cao-doanh-thu-thang?nam=2024&thang=10
+     */
+    @GetMapping("/bao-cao-doanh-thu-thang")
+    public ResponseEntity<ApiResponse<?>> getBaoCaoDoanhThuThang(@RequestParam("nam") int nam, @RequestParam("thang") int thang) {
+        try {
+            BaoCaoDoanhThuThangDTO result = thongKeService.getBaoCaoDoanhThuThang(nam, thang);
+            return ResponseEntity.ok(ApiResponse.success("Lấy báo cáo doanh thu tháng thành công", result));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(ApiResponse.error(e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("Lỗi hệ thống khi lấy báo cáo doanh thu tháng: " + e.getMessage()));
         }
     }
 }
