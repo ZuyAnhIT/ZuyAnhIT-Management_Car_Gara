@@ -9,17 +9,20 @@ import com.example.gara_management.dto.DichVuDTO.DichVuUpdateDTO;
 import com.example.gara_management.model.DichVu;
 import com.example.gara_management.service.DichVuService;
 
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import com.example.gara_management.exception.ResourceAlreadyExistsException;
 import com.example.gara_management.exception.ResourceNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 
 @Tag(name = "Quản lý Dịch Vụ", description = "API thêm, sửa, xóa, xem dịch vụ trong hệ thống gara")
 @RestController
 @RequestMapping("/api/dichvu") // Endpoint cho Dịch Vụ
+// @SecurityRequirement(name = "bearerAuth")
 public class DichVuController {
 
     private final DichVuService dichVuService;
@@ -33,6 +36,7 @@ public class DichVuController {
     /**
      * Endpoint POST để thêm dịch vụ mới.
      */
+    // @PreAuthorize("hasAuthority('Quản lý')")
     @PostMapping("them")
     public ResponseEntity<?> createService(@Valid @RequestBody DichVuCreateDTO createDTO) {
         try {
@@ -60,6 +64,7 @@ public class DichVuController {
      * Endpoint GET để lấy danh sách dịch vụ (không có tìm kiếm/lọc).
      * URL ví dụ: /api/dichvu?sortBy=tenDichVu&sortDirection=asc
      */
+    // @PreAuthorize("hasAuthority('Quản lý')") // <-- Yêu cầu quyền: hasAuthority là an toàn nhất
     @GetMapping("hienThiDanhSach")
     public ResponseEntity<PageResponseDTO<DichVuResponseDTO>> getAllServices(
             @RequestParam(defaultValue = "0") int page,
@@ -78,6 +83,7 @@ public class DichVuController {
      * Endpoint GET riêng để tìm kiếm dịch vụ theo các tiêu chí khác nhau.
      * URL ví dụ: /api/dichvu/search?tenDichVu=Thay dầu&trangThai=Hết hàng
      */
+    // @PreAuthorize("hasAuthority('Quản lý')")
     @GetMapping("/timKiem") // <-- API riêng biệt cho tìm kiếm
     public ResponseEntity<PageResponseDTO<DichVuResponseDTO>> searchServices(
             @RequestParam(defaultValue = "0") int page,
@@ -93,8 +99,9 @@ public class DichVuController {
         return ResponseEntity.ok(responseDTO);
     }
 
-
+    
     //API CẬP NHẬT THÔNG TIN DỊCH VỤ
+    // @PreAuthorize("hasAuthority('Quản lý')")
     @PutMapping("/{maDichVu}")
     public ResponseEntity<?> updateService(
             @PathVariable Integer maDichVu, 
@@ -124,6 +131,7 @@ public class DichVuController {
      * @param maDichVu Mã dịch vụ cần xóa.
      * @return ResponseEntity chứa đối tượng đã xóa mềm hoặc thông báo lỗi.
      */
+    // @PreAuthorize("hasAuthority('Quản lý')")
     @DeleteMapping("/{maDichVu}")
     public ResponseEntity<?> softDeleteService(@PathVariable Integer maDichVu) {
         try {

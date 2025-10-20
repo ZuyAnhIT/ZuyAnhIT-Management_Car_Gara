@@ -3,11 +3,13 @@ package com.example.gara_management.controller;
 import com.example.gara_management.dto.BaoCaoThongKeDTO.ThongKeDTO;
 import com.example.gara_management.service.ThongKeService;
 
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 import com.example.gara_management.dto.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -16,9 +18,9 @@ import org.springframework.http.HttpStatus;
 
 @RestController
 @Tag(name = "Thống kê", description = "API hiển thị thống kê về hệ thống")
-@RequestMapping("/api/thongKe")
+@RequestMapping("/api/thongke")
+@SecurityRequirement(name = "bearerAuth")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
 public class ThongKeController {
 
     private final ThongKeService thongKeService;
@@ -27,6 +29,7 @@ public class ThongKeController {
      * Endpoint GET để lấy các chỉ số thống kê tổng quan.
      * URL: GET /api/thong-ke
      */
+    @PreAuthorize("hasAuthority('Quản lý')")
     @GetMapping("hienThiThongKe")
     public ResponseEntity<ApiResponse<ThongKeDTO>> getGeneralStatistics() {
         try {
