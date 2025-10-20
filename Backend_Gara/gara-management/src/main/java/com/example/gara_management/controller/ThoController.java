@@ -17,7 +17,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 
 @Tag(name = "Quản lý Thợ", description = "API thêm, sửa, xóa, xem thợ trong hệ thống gara")
 @RestController
-@RequestMapping("/api/")
+@RequestMapping("/api/tho")
 @CrossOrigin(origins = "*")
 public class ThoController {
     
