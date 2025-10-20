@@ -15,4 +15,6 @@ public interface HoaDonRepository extends JpaRepository<HoaDon, Integer>, JpaSpe
     Optional<HoaDon> findByPhieuSuaChua_MaPhieu(Integer maPhieu);
     
     List<HoaDon> findByTrangThai(String trangThai);
+
+    Long countByTrangThai(String trangThai);
 }
