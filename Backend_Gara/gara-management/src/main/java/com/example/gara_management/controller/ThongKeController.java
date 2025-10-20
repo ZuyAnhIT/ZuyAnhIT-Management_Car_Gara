@@ -15,7 +15,10 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-
+// loai dịch vụ %
+import com.example.gara_management.dto.BaoCaoThongKeDTO.BaoCaoDoanhThuNamDTO;
+import com.example.gara_management.dto.BaoCaoThongKeDTO.TiLeSuDungLoaiDichVuDTO;
+import java.util.List;
 import com.example.gara_management.dto.BaoCaoThongKeDTO.BaoCaoDoanhThuNamDTO;
 // Import DTO cho báo cáo doanh thu tháng
 import com.example.gara_management.dto.BaoCaoThongKeDTO.BaoCaoDoanhThuThangDTO;
@@ -141,4 +144,18 @@ public class ThongKeController {
                     .body(ApiResponse.error("Lỗi hệ thống khi lấy báo cáo doanh thu năm: " + e.getMessage()));
         }
     }
+    // ================================================================
+    //  API TỈ LỆ SỬ DỤNG LOẠI DỊCH VỤ
+    // ================================================================
+    @GetMapping("/ti-le-su-dung-dich-vu")
+    public ResponseEntity<ApiResponse<?>> getTiLeSuDungLoaiDichVu() {
+        try {
+            List<TiLeSuDungLoaiDichVuDTO> result = thongKeService.getTiLeSuDungLoaiDichVu();
+            return ResponseEntity.ok(ApiResponse.success("Lấy tỉ lệ sử dụng loại dịch vụ thành công", result));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("Lỗi hệ thống khi lấy tỉ lệ sử dụng loại dịch vụ: " + e.getMessage()));
+        }
+    }
+
 }

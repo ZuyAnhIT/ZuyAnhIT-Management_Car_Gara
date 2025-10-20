@@ -9,11 +9,17 @@ import com.example.gara_management.repository.HoaDonRepository;
 import com.example.gara_management.repository.KhachHangRepository;
 import com.example.gara_management.repository.LoaiDichVuRepository;
 import com.example.gara_management.repository.ThoRepository;
-
+import com.example.gara_management.model.ChiTietPhieuSuaChua;
+import com.example.gara_management.repository.ChiTietPhieuSuaChuaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
+import com.example.gara_management.dto.BaoCaoThongKeDTO.TiLeSuDungLoaiDichVuDTO;
+import com.example.gara_management.model.LoaiDichVu;
+import com.example.gara_management.model.PhieuSuaChua;
+import com.example.gara_management.repository.PhieuSuaChuaRepository;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.math.BigDecimal;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -35,12 +41,14 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ThongKeService {
 
-    // Inject các Repository cần thiết
+ // Inject các Repository cần thiết
     private final DichVuRepository dichVuRepository;
     private final ThoRepository thoRepository;
     private final LoaiDichVuRepository loaiDichVuRepository;
     private final KhachHangRepository khachHangRepository;
     private final HoaDonRepository hoaDonRepository;
+    private final PhieuSuaChuaRepository phieuSuaChuaRepository;
+    private final ChiTietPhieuSuaChuaRepository chiTietPhieuSuaChuaRepository; // <-- THÊM DÒNG NÀY
 
     // ================================================================
     //  THỐNG KÊ TỔNG QUAN
@@ -310,5 +318,55 @@ public class ThongKeService {
     private int getQuarterFromDate(LocalDate date) {
         Month month = date.getMonth();
         return (month.getValue() - 1) / 3 + 1;
+    }
+        // ================================================================
+    //  TỈ LỆ SỬ DỤNG LOẠI DỊCH VỤ (LOGIC ĐÃ SỬA LẠI CHO ĐÚNG)
+    // ================================================================
+
+    /**
+     * Tính toán và trả về tỉ lệ sử dụng của mỗi loại dịch vụ dựa trên
+     * số lần chúng xuất hiện trong chi tiết các phiếu sửa chữa.
+     * @return Danh sách DTO chứa thông tin tỉ lệ của từng loại dịch vụ.
+     */
+    @Transactional(readOnly = true)
+    public List<TiLeSuDungLoaiDichVuDTO> getTiLeSuDungLoaiDichVu() {
+        // Lấy tất cả chi tiết phiếu sửa chữa và loại dịch vụ
+        List<ChiTietPhieuSuaChua> allDetails = chiTietPhieuSuaChuaRepository.findAll();
+        List<LoaiDichVu> allLoaiDichVu = loaiDichVuRepository.findAll();
+
+        // 1. Lọc ra các chi tiết hợp lệ và nhóm theo tên loại dịch vụ để đếm
+        Map<String, Long> usageCounts = allDetails.stream()
+            .filter(detail -> detail.getDichVu() != null && detail.getDichVu().getLoaiDichVu() != null)
+            .collect(Collectors.groupingBy(
+                detail -> detail.getDichVu().getLoaiDichVu().getTenLoai(),
+                Collectors.counting()
+            ));
+
+        // 2. Tính tổng số lần sử dụng hợp lệ
+        long totalValidUsageCount = usageCounts.values().stream().mapToLong(Long::longValue).sum();
+
+        // Nếu không có dịch vụ nào được sử dụng, trả về danh sách tất cả loại dịch vụ với số liệu bằng 0
+        if (totalValidUsageCount == 0) {
+            return allLoaiDichVu.stream()
+                .map(ldv -> new TiLeSuDungLoaiDichVuDTO(ldv.getTenLoai(), 0, 0.0))
+                .sorted(Comparator.comparing(TiLeSuDungLoaiDichVuDTO::getTenLoaiDichVu))
+                .collect(Collectors.toList());
+        }
+
+        // 3. Xây dựng danh sách kết quả, bao gồm cả những loại dịch vụ không được sử dụng
+        return allLoaiDichVu.stream()
+            .map(ldv -> {
+                long count = usageCounts.getOrDefault(ldv.getTenLoai(), 0L);
+                double percentage = (double) count * 100.0 / totalValidUsageCount;
+                percentage = Math.round(percentage * 100.0) / 100.0;
+
+                return new TiLeSuDungLoaiDichVuDTO(
+                    ldv.getTenLoai(),
+                    count,
+                    percentage
+                );
+            })
+            .sorted(Comparator.comparing(TiLeSuDungLoaiDichVuDTO::getSoLanSuDung).reversed())
+            .collect(Collectors.toList());
     }
 }
