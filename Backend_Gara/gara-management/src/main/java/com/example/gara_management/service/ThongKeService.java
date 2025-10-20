@@ -1,5 +1,5 @@
 package com.example.gara_management.service;
-
+import com.example.gara_management.dto.BaoCaoThongKeDTO.BaoCaoDoanhThuNamDTO; 
 import com.example.gara_management.dto.BaoCaoThongKeDTO.BaoCaoDoanhThuThangDTO;
 import com.example.gara_management.dto.BaoCaoThongKeDTO.BaoCaoDoanhThuTuanDTO;
 import com.example.gara_management.dto.BaoCaoThongKeDTO.ThongKeDTO;
@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.Month;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -249,5 +250,65 @@ public class ThongKeService {
         } catch (DateTimeParseException e) {
             throw new IllegalArgumentException("Định dạng ngày không hợp lệ. Vui lòng sử dụng định dạng 'YYYY-MM-DD'.");
         }
+    }
+    // ================================================================
+    //  BÁO CÁO DOANH THU NĂM
+    // ================================================================
+
+    /**
+     * Lấy báo cáo doanh thu của một năm cụ thể, chi tiết theo từng quý.
+     * @param nam Năm cần báo cáo.
+     * @return DTO chứa thông tin báo cáo năm.
+     */
+    @Transactional(readOnly = true)
+    public BaoCaoDoanhThuNamDTO getBaoCaoDoanhThuNam(int nam) {
+        try {
+            LocalDate startOfYear = LocalDate.of(nam, 1, 1);
+            LocalDate endOfYear = LocalDate.of(nam, 12, 31);
+
+            List<HoaDon> allInvoices = hoaDonRepository.findAll();
+
+            Map<Integer, BigDecimal> quarterlyTotals = new TreeMap<>();
+            quarterlyTotals.put(1, BigDecimal.ZERO); // Quý 1
+            quarterlyTotals.put(2, BigDecimal.ZERO); // Quý 2
+            quarterlyTotals.put(3, BigDecimal.ZERO); // Quý 3
+            quarterlyTotals.put(4, BigDecimal.ZERO); // Quý 4
+
+            for (HoaDon hd : allInvoices) {
+                if ("Đã thanh toán".equals(hd.getTrangThai()) && hd.getThoiGianThanhCong() != null) {
+                    LocalDate thanhCongDate = hd.getThoiGianThanhCong().toLocalDate();
+                    if (!thanhCongDate.isBefore(startOfYear) && !thanhCongDate.isAfter(endOfYear)) {
+                        int quarter = getQuarterFromDate(thanhCongDate);
+                        quarterlyTotals.merge(quarter, hd.getTongTien(), BigDecimal::add);
+                    }
+                }
+            }
+
+            Map<String, BigDecimal> chiTietTheoQuy = new LinkedHashMap<>();
+            for (Map.Entry<Integer, BigDecimal> entry : quarterlyTotals.entrySet()) {
+                chiTietTheoQuy.put("Quý " + entry.getKey(), entry.getValue());
+            }
+
+            BigDecimal tongDoanhThu = chiTietTheoQuy.values().stream().reduce(BigDecimal.ZERO, BigDecimal::add);
+
+            return BaoCaoDoanhThuNamDTO.builder()
+                    .nam(nam)
+                    .tongDoanhThu(tongDoanhThu)
+                    .chiTietTheoQuy(chiTietTheoQuy)
+                    .build();
+
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Năm không hợp lệ hoặc đã xảy ra lỗi hệ thống.");
+        }
+    }
+
+    /**
+     * Phương thức hỗ trợ xác định quý từ một ngày.
+     * @param date Ngày cần xác định quý.
+     * @return Số thứ tự của quý (1, 2, 3, hoặc 4).
+     */
+    private int getQuarterFromDate(LocalDate date) {
+        Month month = date.getMonth();
+        return (month.getValue() - 1) / 3 + 1;
     }
 }
