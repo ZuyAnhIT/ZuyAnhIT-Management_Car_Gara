@@ -13,6 +13,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+
+import com.example.gara_management.dto.BaoCaoThongKeDTO.BaoCaoDoanhThuNamDTO;
 // Import DTO cho báo cáo doanh thu tháng
 import com.example.gara_management.dto.BaoCaoThongKeDTO.BaoCaoDoanhThuThangDTO;
 // Import RequestParam để nhận tham số từ URL
@@ -108,6 +110,32 @@ public class ThongKeController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(ApiResponse.error("Lỗi hệ thống khi lấy báo cáo doanh thu tháng: " + e.getMessage()));
+        }
+    }
+    // ================================================================
+    //  API BÁO CÁO DOANH THU NĂM
+    // ================================================================
+
+    /**
+     * Endpoint GET để lấy báo cáo doanh thu chi tiết của một năm.
+     * API này nhận vào năm và sẽ trả về báo cáo cho các quý trong năm đó.
+     *
+     * @param nam Năm cần xem báo cáo. Ví dụ: 2024.
+     * @return Một đối tượng ResponseEntity chứa ApiResponse.
+     *
+     * URL ví dụ: GET http://localhost:8082/api/thongKe/bao-cao-doanh-thu-nam?nam=2024
+     */
+    @GetMapping("/bao-cao-doanh-thu-nam")
+    public ResponseEntity<ApiResponse<?>> getBaoCaoDoanhThuNam(@RequestParam("nam") int nam) {
+        try {
+            BaoCaoDoanhThuNamDTO result = thongKeService.getBaoCaoDoanhThuNam(nam);
+            return ResponseEntity.ok(ApiResponse.success("Lấy báo cáo doanh thu năm thành công", result));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(ApiResponse.error(e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("Lỗi hệ thống khi lấy báo cáo doanh thu năm: " + e.getMessage()));
         }
     }
 }
