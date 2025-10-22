@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "Quản lý Khách Hàng", description = "API thêm, sửa, xóa, xem danh sách khách hàng trong hệ thống gara")
 @RestController
 @RequestMapping("/api/khachhang")
+@CrossOrigin(origins = "*")
 public class KhachHangController {
 
     private final KhachHangService khachHangService;
