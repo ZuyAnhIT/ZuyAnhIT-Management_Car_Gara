@@ -4,6 +4,8 @@ import com.example.gara_management.dto.ApiResponse;
 import com.example.gara_management.dto.auth.*;
 import com.example.gara_management.model.TaiKhoan;
 import com.example.gara_management.service.AuthService;
+
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -12,6 +14,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
+@Tag(name = "Auth", description = "API đăng nhập, đăng ký.....")
+
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
 @CrossOrigin(origins = "*")
@@ -20,7 +24,7 @@ public class AuthController {
     private final AuthService authService;
     
     // Đăng nhập
-    @PostMapping("/login")
+    @PostMapping("/dangNhap")
     public ResponseEntity<ApiResponse<AuthResponse>> login(@Valid @RequestBody LoginRequest request) {
         try {
             AuthResponse response = authService.login(request);
@@ -32,7 +36,7 @@ public class AuthController {
     }
     
     // Đăng ký
-    @PostMapping("/register")
+    @PostMapping("/dangKy")
     public ResponseEntity<ApiResponse<AuthResponse>> register(@Valid @RequestBody RegisterRequest request) {
         try {
             AuthResponse response = authService.register(request);
@@ -44,21 +48,8 @@ public class AuthController {
         }
     }
     
-    // Lấy thông tin tài khoản hiện tại
-    @GetMapping("/me")
-    public ResponseEntity<ApiResponse<TaiKhoan>> getCurrentUser(Authentication authentication) {
-        try {
-            String username = authentication.getName();
-            TaiKhoan taiKhoan = authService.getCurrentUser(username);
-            return ResponseEntity.ok(ApiResponse.success("Lấy thông tin thành công", taiKhoan));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(ApiResponse.error("Không tìm thấy tài khoản"));
-        }
-    }
-    
     // Đổi mật khẩu
-    @PutMapping("/change-password")
+    @PutMapping("/doiMatKhau")
     public ResponseEntity<ApiResponse<String>> changePassword(
             Authentication authentication,
             @Valid @RequestBody ChangePasswordRequest request) {

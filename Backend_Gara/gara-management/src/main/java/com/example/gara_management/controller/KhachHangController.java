@@ -58,7 +58,7 @@ public class KhachHangController {
     // ----------------------------------------------------------------------
     // --- API 1: CHỈ HIỂN THỊ DANH SÁCH & SẮP XẾP (Giữ nguyên API cũ) ---
     // ----------------------------------------------------------------------
-    @GetMapping
+    @GetMapping("hienThiDanhSach")
     public ResponseEntity<PageResponseDTO<KhachHangResponseDTO>> getAllKhachHang(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
@@ -78,7 +78,7 @@ public class KhachHangController {
      * Endpoint GET riêng để tìm kiếm/lọc khách hàng.
      * URL ví dụ: /api/khachhang/search?tenKhachHang=Nguyễn Văn A&soDienThoai=0987&trangThai=Hoạt động
      */
-    @GetMapping("/search") 
+    @GetMapping("/timKiem") 
     public ResponseEntity<PageResponseDTO<KhachHangResponseDTO>> searchKhachHang(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
