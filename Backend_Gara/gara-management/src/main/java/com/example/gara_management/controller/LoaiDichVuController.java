@@ -17,6 +17,7 @@ import jakarta.validation.Valid; // Thêm import này
 @Tag(name = "Quản lý Loại Dịch Vụ", description = "API thêm, sửa, xóa, xem loại dịch vụ trong hệ thống gara")
 @RestController
 @RequestMapping("/api/loaidichvu")
+@CrossOrigin(origins = "*")
 public class LoaiDichVuController {
 
     private final LoaiDichVuService loaiDichVuService;

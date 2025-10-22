@@ -22,7 +22,7 @@ import jakarta.validation.Valid;
 @Tag(name = "Quản lý Dịch Vụ", description = "API thêm, sửa, xóa, xem dịch vụ trong hệ thống gara")
 @RestController
 @RequestMapping("/api/dichvu") // Endpoint cho Dịch Vụ
-// @SecurityRequirement(name = "bearerAuth")
+@CrossOrigin(origins = "*")
 public class DichVuController {
 
     private final DichVuService dichVuService;
