@@ -3,6 +3,7 @@ package com.example.gara_management.controller;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.*;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 import com.example.gara_management.exception.ResourceAlreadyExistsException;
@@ -45,8 +46,21 @@ public class ThoController {
             @RequestParam(required = false) String sortDirection) {
         return ResponseEntity.ok(thoService.getAllPaged(page, size, sortBy, sortDirection));
     }
+
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateTho(@PathVariable Integer id, @RequestBody ThoUpdateDTO updateDTO) {
+    public ResponseEntity<?> updateTho(
+        @PathVariable Integer id, 
+        @Valid @RequestBody ThoUpdateDTO updateDTO,
+        BindingResult bindingResult) {
+
+        if (bindingResult.hasErrors()) {
+            String errorMessages = bindingResult.getFieldErrors().stream()
+                .map(error -> error.getField() + ": " + error.getDefaultMessage())
+                .reduce((msg1, msg2) -> msg1 + "; " + msg2)
+                .orElse("Dữ liệu không hợp lệ");
+            return new ResponseEntity<>(errorMessages, HttpStatus.BAD_REQUEST);
+        }
+
         try {
             return ResponseEntity.ok(thoService.updateTho(id, updateDTO));
         } catch (ResourceNotFoundException e) {
