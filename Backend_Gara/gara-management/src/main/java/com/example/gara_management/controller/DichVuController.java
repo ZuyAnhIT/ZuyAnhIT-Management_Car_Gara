@@ -2,6 +2,7 @@ package com.example.gara_management.controller;
 
 
 
+import com.example.gara_management.dto.ApiResponse;
 import com.example.gara_management.dto.PageResponseDTO;
 import com.example.gara_management.dto.DichVuDTO.DichVuCreateDTO;
 import com.example.gara_management.dto.DichVuDTO.DichVuResponseDTO;
@@ -9,15 +10,18 @@ import com.example.gara_management.dto.DichVuDTO.DichVuUpdateDTO;
 import com.example.gara_management.model.DichVu;
 import com.example.gara_management.service.DichVuService;
 
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+
+import org.springframework.http.MediaType;
 import com.example.gara_management.exception.ResourceAlreadyExistsException;
 import com.example.gara_management.exception.ResourceNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import jakarta.validation.Valid;
+
 
 @Tag(name = "Quản lý Dịch Vụ", description = "API thêm, sửa, xóa, xem dịch vụ trong hệ thống gara")
 @RestController
@@ -31,31 +35,52 @@ public class DichVuController {
         this.dichVuService = dichVuService;
     }
 
-
-    // API THÊM DỊCH VỤ
-    /**
-     * Endpoint POST để thêm dịch vụ mới.
-     */
-    // @PreAuthorize("hasAuthority('Quản lý')")
-    @PostMapping("them")
-    public ResponseEntity<?> createService(@Valid @RequestBody DichVuCreateDTO createDTO) {
+    // ====================================================================
+    // 1. API THÊM DỊCH VỤ (POST - MULTIPART)
+    // ====================================================================
+    //@PreAuthorize("hasAuthority('Quản lý')") 
+    @PostMapping(value = "them", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ApiResponse<DichVuResponseDTO>> createService(
+            @Valid @ModelAttribute DichVuCreateDTO createDTO,
+            @RequestParam(value = "imageFile", required = false) MultipartFile imageFile) {
         try {
-            DichVu newService = dichVuService.addService(createDTO);
+            DichVu result = dichVuService.addService(createDTO, imageFile); 
+            DichVuResponseDTO responseDTO = new DichVuResponseDTO(result); 
+
+            return ResponseEntity.status(HttpStatus.CREATED)
+                    .body(ApiResponse.success("Thêm dịch vụ thành công", responseDTO)); 
             
-            // Trả về đối tượng vừa tạo với HTTP Status 201 Created
-            return new ResponseEntity<>(newService, HttpStatus.CREATED); 
-            
-        } catch (ResourceNotFoundException e) {
-            // Lỗi nghiệp vụ: Không tìm thấy Loại Dịch Vụ (404 Not Found)
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
-            
-        } catch (ResourceAlreadyExistsException e) {
-            // Lỗi nghiệp vụ: Trùng tên Dịch Vụ (409 Conflict)
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT);
-            
+        } catch (ResourceNotFoundException | ResourceAlreadyExistsException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(ApiResponse.error("Lỗi nghiệp vụ: " + e.getMessage()));
         } catch (Exception e) {
-            // Lỗi khác (500 Internal Server Error)
-            return new ResponseEntity<>("Lỗi hệ thống khi thêm dịch vụ: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("Lỗi khi thêm dịch vụ: " + e.getMessage()));
+        }
+    }
+
+    // ====================================================================
+    // 2. API CẬP NHẬT THÔNG TIN DỊCH VỤ (PUT - MULTIPART)
+    // ====================================================================
+    //@PreAuthorize("hasAuthority('Quản lý')")
+    @PutMapping(value = "/{maDichVu}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ApiResponse<DichVuResponseDTO>> updateService(
+            @PathVariable Integer maDichVu, 
+            @Valid @ModelAttribute DichVuUpdateDTO updateDTO, 
+            @RequestParam(value = "imageFile", required = false) MultipartFile imageFile) {
+        try {
+            DichVu updatedEntity = dichVuService.updateService(maDichVu, updateDTO, imageFile);
+            
+            DichVuResponseDTO responseDTO = new DichVuResponseDTO(updatedEntity);
+            
+            return ResponseEntity.ok(ApiResponse.success("Cập nhật dịch vụ thành công", responseDTO));
+            
+        } catch (ResourceNotFoundException | ResourceAlreadyExistsException | IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(ApiResponse.error(e.getMessage()));
+        } catch (Exception e) {
+             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("Lỗi hệ thống khi cập nhật dịch vụ: " + e.getMessage()));
         }
     }
 
@@ -97,32 +122,6 @@ public class DichVuController {
                 dichVuService.searchServices(page, size, sortBy, sortDirection, tenDichVu, tenLoai);
         
         return ResponseEntity.ok(responseDTO);
-    }
-
-    
-    //API CẬP NHẬT THÔNG TIN DỊCH VỤ
-    // @PreAuthorize("hasAuthority('Quản lý')")
-    @PutMapping("/{maDichVu}")
-    public ResponseEntity<?> updateService(
-            @PathVariable Integer maDichVu, 
-            @Valid @RequestBody DichVuUpdateDTO updateDTO) {
-        try {
-            DichVu updatedService = dichVuService.updateService(maDichVu, updateDTO);
-            
-            return ResponseEntity.ok(updatedService);
-            
-        } catch (ResourceNotFoundException e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND); // 404
-            
-        } catch (ResourceAlreadyExistsException e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT); // 409
-            
-        } catch (IllegalArgumentException e) { // Xử lý lỗi trạng thái/loại dịch vụ không hợp lệ
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST); // 400 Bad Request
-            
-        } catch (Exception e) {
-            return new ResponseEntity<>("Lỗi hệ thống khi cập nhật dịch vụ: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR); // 500
-        }
     }
 
     //API XÓA MỀM DỊCH VỤ

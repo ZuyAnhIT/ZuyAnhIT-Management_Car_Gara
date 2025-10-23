@@ -2,6 +2,8 @@ package com.example.gara_management.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.Builder;
+import lombok.Data;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
@@ -12,6 +14,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 @Data // Cung cấp Getters, Setters, toString, equals/hashCode
 @NoArgsConstructor // Constructor không đối số
 @AllArgsConstructor // Constructor đầy đủ đối số
+@Builder
 public class DichVu {
 
     @Id
@@ -67,5 +70,10 @@ public class DichVu {
         this.loaiDichVu = loaiDichVu;
         this.trangThai = "Còn hàng";
         this.ngayTao = LocalDateTime.now();
+    }
+
+    public static Object builder() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'builder'");
     }
 }
