@@ -22,7 +22,7 @@ public class DichVuCreateDTO {
     @Size(max = 255, message = "Mô tả không được vượt quá 255 ký tự.")
     private String moTa; // Có thể null
 
-    private String anhDichVu; // Có thể null (TEXT)
+    // private String anhDichVu; // Có thể null (TEXT)
 
     @NotNull(message = "Số lượng tồn không được để trống.")
     @Min(value = 0, message = "Số lượng tồn phải lớn hơn hoặc bằng 0.")

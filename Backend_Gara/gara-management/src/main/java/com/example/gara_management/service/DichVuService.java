@@ -1,74 +1,149 @@
 package com.example.gara_management.service;
 
-import com.example.gara_management.dto.PageResponseDTO;
 import com.example.gara_management.dto.DichVuDTO.DichVuCreateDTO;
-import com.example.gara_management.dto.DichVuDTO.DichVuResponseDTO;
+import com.example.gara_management.dto.DichVuDTO.DichVuResponseDTO; 
 import com.example.gara_management.dto.DichVuDTO.DichVuUpdateDTO;
+import com.example.gara_management.dto.PageResponseDTO;
+import com.example.gara_management.exception.ResourceAlreadyExistsException;
+import com.example.gara_management.exception.ResourceNotFoundException;
 import com.example.gara_management.model.DichVu;
 import com.example.gara_management.model.LoaiDichVu;
 import com.example.gara_management.repository.DichVuRepository;
 import com.example.gara_management.repository.LoaiDichVuRepository;
-import com.example.gara_management.util.JpaSpecificationUtil;
+import com.example.gara_management.util.FileUploadUtil; // <-- Sử dụng lại
+import com.example.gara_management.util.JpaSpecificationUtil; 
 import com.example.gara_management.util.SortUtils;
-import com.example.gara_management.exception.ResourceAlreadyExistsException;
-import com.example.gara_management.exception.ResourceNotFoundException;
 
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.jpa.domain.Specification;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Arrays;
-import java.util.Optional;
-
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+
 @Service
+@RequiredArgsConstructor
 public class DichVuService {
-
+    
     private final DichVuRepository dichVuRepository;
-    private final LoaiDichVuRepository loaiDichVuRepository; // Cần dùng Repository của LoaiDichVu
-    private static final String[] VALID_TRANG_THAI = {"Còn hàng", "Hết hàng", "Đã xóa"};
-    public DichVuService(DichVuRepository dichVuRepository, LoaiDichVuRepository loaiDichVuRepository) {
-        this.dichVuRepository = dichVuRepository;
-        this.loaiDichVuRepository = loaiDichVuRepository;
+    private final LoaiDichVuRepository loaiDichVuRepository;
+    
+    private static final List<String> VALID_TRANG_THAI = Arrays.asList("Còn hàng", "Hết hàng", "Đã xóa", "Sắp hết");
+
+    // --- HÀM CONVERT ---
+    private DichVuResponseDTO convertToDTO(DichVu dichVu) {
+        return new DichVuResponseDTO(dichVu); 
     }
-
-    // HÀM THÊM DỊCH VỤ
-    /**
-     * Thêm mới dịch vụ, tự động tìm MaLoai từ TenLoaiDichVu.
-     */
+    
+    // --- THÊM MỚI DỊCH VỤ ---
     @Transactional
-    public DichVu addService(DichVuCreateDTO createDTO) {
-
-        // 1. Kiểm tra tên dịch vụ đã tồn tại chưa
+    public DichVu addService(DichVuCreateDTO createDTO, MultipartFile imageFile) {
+        
         dichVuRepository.findByTenDichVu(createDTO.getTenDichVu()).ifPresent(dichVu -> {
             throw new ResourceAlreadyExistsException("Tên dịch vụ đã tồn tại: " + createDTO.getTenDichVu());
         });
+        
+        LoaiDichVu loaiDichVu = loaiDichVuRepository.findByTenLoai(createDTO.getTenLoaiDichVu())
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy Loại Dịch Vụ: " + createDTO.getTenLoaiDichVu()));
+        
+        String uniqueFilename = null;
+        try {
+            // LƯU FILE VÀ LẤY TÊN FILE DUY NHẤT
+            uniqueFilename = FileUploadUtil.saveImageFile(imageFile);
+        } catch (IOException | IllegalArgumentException e) { 
+            throw new RuntimeException("Lỗi khi xử lý ảnh: " + e.getMessage(), e);
+        }
 
-        // 2. Tìm kiếm LoaiDichVu theo Tên
-        String tenLoai = createDTO.getTenLoaiDichVu();
-        LoaiDichVu loaiDichVu = loaiDichVuRepository.findByTenLoai(tenLoai)
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy Loại Dịch Vụ với Tên: " + tenLoai));
-
-        // 3. Chuyển đổi DTO sang Entity và thiết lập mối quan hệ
-        DichVu newService = new DichVu(
-                createDTO.getTenDichVu(),
-                createDTO.getMoTa(),
-                createDTO.getAnhDichVu(),
-                createDTO.getSoLuongTon(),
-                createDTO.getSoLuongBan(),
-                createDTO.getGia(),
-                createDTO.getThoiGianUocTinh(),
-                loaiDichVu // Thiết lập Entity LoaiDichVu
-        );
-
-        // 4. Lưu vào Database
+        // Tạo entity DichVu
+        DichVu newService = new DichVu(); 
+        newService.setTenDichVu(createDTO.getTenDichVu());
+        newService.setMoTa(createDTO.getMoTa());
+        newService.setAnhDichVu(uniqueFilename); // <-- Lưu TÊN FILE
+        newService.setSoLuongTon(createDTO.getSoLuongTon());
+        newService.setSoLuongBan(createDTO.getSoLuongBan());
+        newService.setGia(createDTO.getGia());
+        newService.setThoiGianUocTinh(createDTO.getThoiGianUocTinh());
+        newService.setTrangThai("Còn hàng"); 
+        newService.setNgayTao(LocalDateTime.now());
+        newService.setLoaiDichVu(loaiDichVu);
+        
         return dichVuRepository.save(newService);
     }
+    
+    // --- CẬP NHẬT DỊCH VỤ ---
+    @Transactional
+    public DichVu updateService(Integer maDichVu, DichVuUpdateDTO updateDTO, MultipartFile imageFile) {
+        
+        DichVu dichVu = dichVuRepository.findById(maDichVu)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy dịch vụ với mã: " + maDichVu));
+        
+        // 1. Cập nhật Tên Dịch Vụ
+        String newTenDichVu = updateDTO.getTenDichVu();
+        if (newTenDichVu != null && !newTenDichVu.trim().isEmpty()) {
+             if (!dichVu.getTenDichVu().equalsIgnoreCase(newTenDichVu)) {
+                dichVuRepository.findByTenDichVu(newTenDichVu).ifPresent(existing -> {
+                    if (!existing.getMaDichVu().equals(maDichVu)) {
+                         throw new ResourceAlreadyExistsException("Tên dịch vụ đã tồn tại: " + newTenDichVu);
+                    }
+                });
+                dichVu.setTenDichVu(newTenDichVu);
+             }
+        }
+        
+        // 2. Cập nhật Loại Dịch Vụ
+        String newTenLoaiDichVu = updateDTO.getTenLoaiDichVu();
+        if (newTenLoaiDichVu != null && !newTenLoaiDichVu.trim().isEmpty()) {
+            LoaiDichVu newLoaiDichVu = loaiDichVuRepository.findByTenLoai(newTenLoaiDichVu)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy Loại Dịch Vụ: " + newTenLoaiDichVu));
+            
+            if ("Đã xóa".equalsIgnoreCase(newLoaiDichVu.getTrangThai())) {
+                throw new IllegalArgumentException("Không thể gán Dịch Vụ cho Loại Dịch Vụ đang ở trạng thái 'Đã xóa'.");
+            }
+            dichVu.setLoaiDichVu(newLoaiDichVu);
+        }
 
+        // 3. Xử lý Trạng Thái Dịch Vụ
+        String newTrangThai = updateDTO.getTrangThai();
+        if (newTrangThai != null && !newTrangThai.trim().isEmpty()) {
+            if (!VALID_TRANG_THAI.contains(newTrangThai)) {
+                throw new IllegalArgumentException("Trạng thái không hợp lệ. Chỉ chấp nhận: " + String.join(", ", VALID_TRANG_THAI));
+            }
+            dichVu.setTrangThai(newTrangThai);
+        }
+        
+        // 4. Xử lý Ảnh mới (Nếu có file mới được gửi)
+        if (imageFile != null && !imageFile.isEmpty()) {
+            // Xóa ảnh cũ
+            if (dichVu.getAnhDichVu() != null) {
+                FileUploadUtil.deleteImageFile(dichVu.getAnhDichVu());
+            }
+            // Lưu ảnh mới
+            try {
+                String newUniqueFilename = FileUploadUtil.saveImageFile(imageFile);
+                dichVu.setAnhDichVu(newUniqueFilename);
+            } catch (IOException | IllegalArgumentException e) {
+                 throw new RuntimeException("Lỗi khi xử lý ảnh mới: " + e.getMessage(), e);
+            }
+        }
+        
+        // 5. Cập nhật các trường còn lại
+        Optional.ofNullable(updateDTO.getMoTa()).ifPresent(dichVu::setMoTa);
+        Optional.ofNullable(updateDTO.getSoLuongTon()).ifPresent(dichVu::setSoLuongTon);
+        Optional.ofNullable(updateDTO.getSoLuongBan()).ifPresent(dichVu::setSoLuongBan);
+        Optional.ofNullable(updateDTO.getGia()).ifPresent(dichVu::setGia);
+        Optional.ofNullable(updateDTO.getThoiGianUocTinh()).ifPresent(dichVu::setThoiGianUocTinh);
+
+        return dichVuRepository.save(dichVu);
+    }
     // HIỂN THỊ DANH SÁCH & SẮP XẾP
     // --- Phương thức 1: CHỈ HIỂN THỊ DANH SÁCH & SẮP XẾP ---
     /**
@@ -125,70 +200,6 @@ public class DichVuService {
 
         // 4. Chuyển đổi sang DTO và trả về
         return new PageResponseDTO<>(dichVuPage.map(DichVuResponseDTO::new));
-    }
-
-
-    //HÀM CẬP NHẬT THÔNG TIN DỊCH VỤ
-    /**
-     * Cập nhật thông tin dịch vụ, chỉ ghi đè các trường được gửi (Partial Update).
-     */
-    @Transactional
-    public DichVu updateService(Integer maDichVu, DichVuUpdateDTO updateDTO) {
-        
-        // 1. Tìm Dịch vụ hiện tại
-        DichVu existingService = dichVuRepository.findById(maDichVu)
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy Dịch Vụ với Mã: " + maDichVu));
-
-        // --- 2. Cập nhật Tên Dịch Vụ ---
-        String newTenDichVu = updateDTO.getTenDichVu();
-        if (newTenDichVu != null && !newTenDichVu.trim().isEmpty()) {
-            
-            // Kiểm tra trùng tên (trừ chính nó)
-            dichVuRepository.findByTenDichVu(newTenDichVu).ifPresent(dichVu -> {
-                if (!dichVu.getMaDichVu().equals(maDichVu)) {
-                    throw new ResourceAlreadyExistsException("Tên dịch vụ đã tồn tại: " + newTenDichVu);
-                }
-            });
-            existingService.setTenDichVu(newTenDichVu);
-        }
-
-        // --- 3. Cập nhật Loại Dịch Vụ (Tìm theo Tên) ---
-        String newTenLoaiDichVu = updateDTO.getTenLoaiDichVu();
-        if (newTenLoaiDichVu != null && !newTenLoaiDichVu.trim().isEmpty()) {
-            
-            LoaiDichVu newLoaiDichVu = loaiDichVuRepository.findByTenLoai(newTenLoaiDichVu)
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy Loại Dịch Vụ với Tên: " + newTenLoaiDichVu));
-            
-            // Kiểm tra trạng thái Loại Dịch Vụ: KHÔNG được là "Đã xóa"
-            if ("Đã xóa".equals(newLoaiDichVu.getTrangThai())) {
-                throw new IllegalArgumentException("Không thể gán Dịch Vụ cho Loại Dịch Vụ đang ở trạng thái 'Đã xóa'.");
-            }
-            
-            existingService.setLoaiDichVu(newLoaiDichVu);
-        }
-
-        // --- 4. Cập nhật Trạng Thái Dịch Vụ ---
-        String newTrangThai = updateDTO.getTrangThai();
-        if (newTrangThai != null && !newTrangThai.trim().isEmpty()) {
-            
-            // Kiểm tra trạng thái hợp lệ
-            if (!Arrays.asList(VALID_TRANG_THAI).contains(newTrangThai)) {
-                throw new IllegalArgumentException("Trạng thái không hợp lệ. Chỉ chấp nhận: " + String.join(", ", VALID_TRANG_THAI));
-            }
-            
-            existingService.setTrangThai(newTrangThai);
-        }
-
-        // --- 5. Cập nhật các trường còn lại (Nếu không null) ---
-        Optional.ofNullable(updateDTO.getMoTa()).ifPresent(existingService::setMoTa);
-        Optional.ofNullable(updateDTO.getAnhDichVu()).ifPresent(existingService::setAnhDichVu);
-        Optional.ofNullable(updateDTO.getSoLuongTon()).ifPresent(existingService::setSoLuongTon);
-        Optional.ofNullable(updateDTO.getSoLuongBan()).ifPresent(existingService::setSoLuongBan);
-        Optional.ofNullable(updateDTO.getGia()).ifPresent(existingService::setGia);
-        Optional.ofNullable(updateDTO.getThoiGianUocTinh()).ifPresent(existingService::setThoiGianUocTinh);
-
-        // 6. Lưu và trả về
-        return dichVuRepository.save(existingService);
     }
 
 
