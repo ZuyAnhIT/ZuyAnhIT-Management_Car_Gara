@@ -29,7 +29,16 @@ public class ThoController {
     }
 
     @PostMapping("/them")
-    public ResponseEntity<?> createTho(@Valid @RequestBody ThoCreateDTO createDTO){
+    public ResponseEntity<?> createTho(@Valid @RequestBody ThoCreateDTO createDTO, BindingResult bindingResult) {
+
+        if (bindingResult.hasErrors()) {
+            String errorMessages = bindingResult.getFieldErrors().stream()
+                .map(error -> error.getField() + ": " + error.getDefaultMessage())
+                .reduce((msg1, msg2) -> msg1 + "; " + msg2)
+                .orElse("Dữ liệu không hợp lệ");
+            return new ResponseEntity<>(errorMessages, HttpStatus.BAD_REQUEST);
+        }
+
         try {
             return new ResponseEntity(thoService.createTho(createDTO), HttpStatus.CREATED);
         } catch (ResourceAlreadyExistsException e) {
