@@ -96,8 +96,9 @@ public class ThoController {
             @RequestParam(required = false) String sortDirection,
             @RequestParam(required = false) String tenTho,
             @RequestParam(required = false) String chuyenMon,
+            @RequestParam(required = false) Integer kinhNghiem,
             @RequestParam(required = false) String trangThai) {
-        return ResponseEntity.ok(thoService.searchTho(page, size, sortBy, sortDirection, tenTho, chuyenMon, trangThai));
+        return ResponseEntity.ok(thoService.searchTho(page, size, sortBy, sortDirection, tenTho, chuyenMon, kinhNghiem, trangThai));
     }
 
 }   
