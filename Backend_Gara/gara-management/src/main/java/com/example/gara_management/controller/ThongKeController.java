@@ -29,7 +29,8 @@ import org.springframework.http.HttpStatus;
 @RestController
 @Tag(name = "Thống kê", description = "API hiển thị thống kê về hệ thống")
 @RequestMapping("/api/thongke")
-@SecurityRequirement(name = "bearerAuth")
+// @SecurityRequirement(name = "bearerAuth")
+@CrossOrigin(origins = "*")
 @RequiredArgsConstructor
 public class ThongKeController {
 
@@ -39,7 +40,7 @@ public class ThongKeController {
      * Endpoint GET để lấy các chỉ số thống kê tổng quan.
      * URL: GET /api/thong-ke
      */
-    @PreAuthorize("hasAuthority('Quản lý')")
+    // @PreAuthorize("hasAuthority('Quản lý')")
     @GetMapping("hienThiThongKe")
     public ResponseEntity<ApiResponse<ThongKeDTO>> getGeneralStatistics() {
         try {
@@ -67,7 +68,7 @@ public class ThongKeController {
      * 
      * URL ví dụ: GET http://localhost:8082/api/thongKe/bao-cao-doanh-thu-tuan?ngay=2024-10-14
      */
-    @PreAuthorize("hasAuthority('Quản lý')")
+    // @PreAuthorize("hasAuthority('Quản lý')")
     @GetMapping("/bao-cao-doanh-thu-tuan")
     public ResponseEntity<ApiResponse<?>> getBaoCaoDoanhThuTuan(@RequestParam("ngay") String ngay) {
         try {
@@ -106,7 +107,7 @@ public class ThongKeController {
      *
      * URL ví dụ: GET http://localhost:8082/api/thongKe/bao-cao-doanh-thu-thang?nam=2024&thang=10
      */
-    @PreAuthorize("hasAuthority('Quản lý')")
+    // @PreAuthorize("hasAuthority('Quản lý')")
     @GetMapping("/bao-cao-doanh-thu-thang")
     public ResponseEntity<ApiResponse<?>> getBaoCaoDoanhThuThang(@RequestParam("nam") int nam, @RequestParam("thang") int thang) {
         try {
@@ -133,7 +134,7 @@ public class ThongKeController {
      *
      * URL ví dụ: GET http://localhost:8082/api/thongKe/bao-cao-doanh-thu-nam?nam=2024
      */
-    @PreAuthorize("hasAuthority('Quản lý')")
+    // @PreAuthorize("hasAuthority('Quản lý')")
     @GetMapping("/bao-cao-doanh-thu-nam")
     public ResponseEntity<ApiResponse<?>> getBaoCaoDoanhThuNam(@RequestParam("nam") int nam) {
         try {
@@ -150,7 +151,7 @@ public class ThongKeController {
     // ================================================================
     //  API TỈ LỆ SỬ DỤNG LOẠI DỊCH VỤ
     // ================================================================
-    @PreAuthorize("hasAuthority('Quản lý')")
+    // @PreAuthorize("hasAuthority('Quản lý')")
     @GetMapping("/ti-le-su-dung-dich-vu")
     public ResponseEntity<ApiResponse<?>> getTiLeSuDungLoaiDichVu() {
         try {

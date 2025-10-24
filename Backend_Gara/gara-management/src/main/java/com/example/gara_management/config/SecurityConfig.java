@@ -88,7 +88,9 @@ public class SecurityConfig {
                         
                         // 1. PUBLIC ENDPOINTS: Auth
                         .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers("/api/loaidichvu/**","/api/tho/**","/api/khachhang/**","/api/xe/**","/api/phieusuachua/**","/api/hoadon/**","/api/dichvu/**").permitAll()
+                        // Phải khớp với đường dẫn đã cấu hình trong WebMvcConfig
+                        .requestMatchers("/uploads/images/**").permitAll()
+                        .requestMatchers("/api/loaidichvu/**","/api/tho/**","/api/khachhang/**","/api/xe/**","/api/phieusuachua/**","/api/hoadon/**","/api/dichvu/**","/api/thongke/**").permitAll()
                         // 2. PUBLIC ENDPOINTS: SWAGGER/OPENAPI
                         .requestMatchers(
                             "/v2/api-docs",

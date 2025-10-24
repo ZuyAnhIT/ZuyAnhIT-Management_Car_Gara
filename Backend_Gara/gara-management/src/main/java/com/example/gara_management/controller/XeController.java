@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "Quản lý Xe", description = "API hiển thị và tìm kiếm xe trong hệ thống gara")
 @RestController
 @RequestMapping("/api/xe")
+@CrossOrigin(origins = "*")
 public class XeController {
 
     private final XeService xeService;
