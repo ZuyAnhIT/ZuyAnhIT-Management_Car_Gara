@@ -25,4 +25,7 @@ public interface ThoRepository extends JpaRepository<Tho, Integer>,
      * Dùng để kiểm tra trùng Email.
      */
     Optional<Tho> findByEmail(String email);
+
+    long countByKinhNghiemGreaterThan(int years);
+    long countByKinhNghiemLessThanEqual(int years);
 }
