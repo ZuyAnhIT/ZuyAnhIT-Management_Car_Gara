@@ -13,6 +13,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RestController
 @Tag(name = "Auth", description = "API đăng nhập, đăng ký.....")
 
@@ -61,5 +63,11 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(ApiResponse.error("Lỗi: " + e.getMessage()));
         }
+    }
+    // ====================== THỐNG KÊ TÀI KHOẢN ======================
+    @GetMapping("/thongKeTaiKhoan")
+    public ResponseEntity<Map<String, Long>> thongKeTaiKhoan() {
+        Map<String, Long> result = authService.thongKeTaiKhoan();
+        return ResponseEntity.ok(result);
     }
 }

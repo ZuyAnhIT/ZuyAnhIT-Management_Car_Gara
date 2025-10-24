@@ -13,6 +13,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -114,4 +116,17 @@ public class AuthService {
         return taiKhoanRepository.findByTenDangNhap(username)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy tài khoản"));
     }
+    // ====================== THỐNG KÊ TÀI KHOẢN ======================
+    public Map<String, Long> thongKeTaiKhoan() {
+        long tongSoTaiKhoan = taiKhoanRepository.count();
+        long soTaiKhoanHoatDong = taiKhoanRepository.countByTrangThai("Hoạt động");
+        long soTaiKhoanNhanVien = taiKhoanRepository.countByVaiTro("Nhân viên");
+
+        Map<String, Long> result = new HashMap<>();
+        result.put("tongSoTaiKhoan", tongSoTaiKhoan);
+        result.put("soTaiKhoanHoatDong", soTaiKhoanHoatDong);
+        result.put("soTaiKhoanNhanVien", soTaiKhoanNhanVien);
+        return result;
+    }
+
 }
