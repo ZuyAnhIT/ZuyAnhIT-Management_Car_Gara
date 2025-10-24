@@ -14,6 +14,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid; // Thêm import này
+
+import java.util.Map;
+
 @Tag(name = "Quản lý Loại Dịch Vụ", description = "API thêm, sửa, xóa, xem loại dịch vụ trong hệ thống gara")
 @RestController
 @RequestMapping("/api/loaidichvu")
@@ -152,5 +155,11 @@ public class LoaiDichVuController {
             // Lỗi khác (500 Internal Server Error)
             return new ResponseEntity<>("Lỗi hệ thống khi xóa mềm loại dịch vụ: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
+    }
+    // 🔸 API thống kê loại dịch vụ
+    @GetMapping("/thongKeLoaiDichVu")
+    public ResponseEntity<Map<String, Long>> thongKeLoaiDichVu() {
+        Map<String, Long> data = loaiDichVuService.thongKeLoaiDichVu();
+        return ResponseEntity.ok(data);
     }
 }

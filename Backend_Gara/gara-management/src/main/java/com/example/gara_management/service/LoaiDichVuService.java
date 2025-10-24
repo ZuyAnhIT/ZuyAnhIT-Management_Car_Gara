@@ -21,7 +21,10 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.Optional;
 
@@ -213,5 +216,21 @@ public class LoaiDichVuService {
         
         entity.setTrangThai("Đã xóa");
         return loaiDichVuRepository.save(entity);
+    }
+    public Map<String, Long> thongKeLoaiDichVu() {
+        Map<String, Long> result = new HashMap<>();
+
+        long tongSoLoai = loaiDichVuRepository.count();
+        long soLoaiHoatDong = loaiDichVuRepository.countByTrangThai("Hoạt động");
+
+        // Tính ngày bắt đầu của 30 ngày gần nhất
+        LocalDateTime thangTruoc = LocalDateTime.now().minusDays(30);
+        long soLoaiMoi = loaiDichVuRepository.countNewInLastMonth(thangTruoc);
+
+        result.put("tongSoLoaiDichVu", tongSoLoai);
+        result.put("soLoaiDichVuHoatDong", soLoaiHoatDong);
+        result.put("soLoaiDichVuMoiThangQua", soLoaiMoi);
+
+        return result;
     }
 }
