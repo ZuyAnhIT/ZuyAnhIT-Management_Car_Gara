@@ -6,6 +6,7 @@ import com.example.gara_management.dto.ApiResponse;
 import com.example.gara_management.dto.PageResponseDTO;
 import com.example.gara_management.dto.DichVuDTO.DichVuCreateDTO;
 import com.example.gara_management.dto.DichVuDTO.DichVuResponseDTO;
+import com.example.gara_management.dto.DichVuDTO.DichVuStatisticsDTO;
 import com.example.gara_management.dto.DichVuDTO.DichVuUpdateDTO;
 import com.example.gara_management.model.DichVu;
 import com.example.gara_management.service.DichVuService;
@@ -153,4 +154,15 @@ public class DichVuController {
             return new ResponseEntity<>("Lỗi hệ thống khi xóa mềm dịch vụ: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+    
+    @GetMapping("/thongKe")
+public ResponseEntity<?> getDichVuStatistics() {
+    try {
+        DichVuStatisticsDTO stats = dichVuService.getDichVuStatistics();
+        return ResponseEntity.ok(stats);
+    } catch (Exception e) {
+        return new ResponseEntity<>("Lỗi hệ thống: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+}
+
 }

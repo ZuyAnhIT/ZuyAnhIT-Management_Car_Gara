@@ -18,7 +18,7 @@ public interface DichVuRepository extends JpaRepository<DichVu, Integer>, JpaSpe
     
     // Thêm JpaSpecificationExecutor nếu bạn muốn tái sử dụng logic tìm kiếm/phân trang
     // đã xây dựng cho LoaiDichVu.
-
+    long countByTrangThai(String trangThai);
     @Query("SELECT SUM(d.soLuongTon) FROM DichVu d")
     Long sumSoLuongTon();
 }
