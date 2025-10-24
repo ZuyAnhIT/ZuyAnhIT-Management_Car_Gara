@@ -15,4 +15,7 @@ public interface KhachHangRepository extends JpaRepository<KhachHang, Integer>, 
 
     // Kiểm tra trùng email
     Optional<KhachHang> findByEmail(String email);
+
+    //  Hàm đếm tổng số khách hàng trong hệ thống
+    long count();
 }

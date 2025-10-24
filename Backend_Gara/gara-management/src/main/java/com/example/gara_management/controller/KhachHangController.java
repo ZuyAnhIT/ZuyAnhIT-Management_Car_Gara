@@ -155,4 +155,11 @@ public class KhachHangController {
                     HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    //  API tính số khách hàng trong hệ thống
+    @GetMapping("/count")
+    public ResponseEntity<Long> countCustomers() {
+        long count = khachHangService.countAllCustomers();
+        return ResponseEntity.ok(count);
+    }
 }
