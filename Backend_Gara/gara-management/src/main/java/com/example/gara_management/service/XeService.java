@@ -22,6 +22,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 @Service
 public class XeService {
@@ -222,5 +224,16 @@ public class XeService {
         // 4 Lưu vào cơ sở dữ liệu
         return xeRepository.save(existingXe);
     }
+    // 🔹 Thống kê xe tổng và xe hoạt động
+    public Map<String, Long> thongKeXe() {
+        Map<String, Long> result = new HashMap<>();
 
+        long tongXe = xeRepository.count();
+        long xeHoatDong = xeRepository.countByTrangThai("Hoạt động");
+
+        result.put("tongSoXe", tongXe);
+        result.put("soXeHoatDong", xeHoatDong);
+
+        return result;
+    }
 }

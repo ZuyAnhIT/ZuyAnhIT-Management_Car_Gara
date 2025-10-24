@@ -14,6 +14,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @Tag(name = "Quản lý Xe", description = "API hiển thị và tìm kiếm xe trong hệ thống gara")
 @RestController
 @RequestMapping("/api/xe")
@@ -174,5 +176,10 @@ public class XeController {
                         HttpStatus.INTERNAL_SERVER_ERROR);
             }
         }
-
+    // 🔸 API thống kê xe
+    @GetMapping("/thongKeXe")
+    public ResponseEntity<Map<String, Long>> thongKeXe() {
+        Map<String, Long> data = xeService.thongKeXe();
+        return ResponseEntity.ok(data);
+    }
 }
