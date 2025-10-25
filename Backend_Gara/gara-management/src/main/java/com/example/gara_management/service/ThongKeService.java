@@ -417,4 +417,34 @@ public com.example.gara_management.dto.BaoCaoThongKeDTO.PhieuSuaChuaThongKeDTO t
             .build();
 }
 
+// [TÍNH NĂNG] Thống kê Hóa Đơn
+@org.springframework.transaction.annotation.Transactional(readOnly = true)
+public com.example.gara_management.dto.BaoCaoThongKeDTO.HoaDonThongKeDTO thongKeHoaDon() {
+    long tongSo = hoaDonRepository.count();
+
+    long daThanhToan = 0L;
+    for (String s : new String[] { "Đã thanh toán", "Da thanh toan", "Da thanh to�n" }) {
+        Long c = hoaDonRepository.countByTrangThai(s);
+        if (c != null) daThanhToan += c;
+    }
+
+    java.math.BigDecimal tongDoanhThu = java.math.BigDecimal.ZERO;
+    for (String s : new String[] { "Đã thanh toán", "Da thanh toan", "Da thanh to�n" }) {
+        java.util.List<com.example.gara_management.model.HoaDon> list = hoaDonRepository.findByTrangThai(s);
+        if (list != null) {
+            for (com.example.gara_management.model.HoaDon hd : list) {
+                if (hd.getTongTien() != null) {
+                    tongDoanhThu = tongDoanhThu.add(hd.getTongTien());
+                }
+            }
+        }
+    }
+
+    return com.example.gara_management.dto.BaoCaoThongKeDTO.HoaDonThongKeDTO.builder()
+        .tongSoHoaDon(tongSo)
+        .soHoaDonDaThanhToan(daThanhToan)
+        .tongDoanhThuDaThanhToan(tongDoanhThu)
+        .build();
+}
+
 }

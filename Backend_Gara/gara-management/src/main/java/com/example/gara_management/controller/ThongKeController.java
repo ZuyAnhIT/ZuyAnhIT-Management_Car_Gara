@@ -185,5 +185,28 @@ public org.springframework.http.ResponseEntity<
     }
 }
 
+    // [TÍNH NĂNG] Thống kê Hóa Đơn
+    @org.springframework.web.bind.annotation.GetMapping("/hoa-don")
+    public org.springframework.http.ResponseEntity<
+        com.example.gara_management.dto.ApiResponse<
+            com.example.gara_management.dto.BaoCaoThongKeDTO.HoaDonThongKeDTO
+        >
+    > thongKeHoaDon() {
+        try {
+            var result = thongKeService.thongKeHoaDon();
+            return org.springframework.http.ResponseEntity.ok(
+                com.example.gara_management.dto.ApiResponse.success(
+                    "Lấy thống kê hóa đơn thành công", result
+                )
+            );
+        } catch (Exception e) {
+            return org.springframework.http.ResponseEntity
+                .status(org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(com.example.gara_management.dto.ApiResponse.error(
+                    "Lỗi hệ thống khi thống kê hóa đơn: " + e.getMessage()
+                ));
+        }
+    }
+
 
 }
