@@ -9,6 +9,7 @@ import jakarta.validation.Valid;
 import com.example.gara_management.exception.ResourceAlreadyExistsException;
 import com.example.gara_management.exception.ResourceNotFoundException;
 import com.example.gara_management.service.ThoService;
+import com.example.gara_management.dto.ApiResponse;
 import com.example.gara_management.dto.PageResponseDTO;
 import com.example.gara_management.dto.ThoDTO.ThoCreateDTO;
 import com.example.gara_management.dto.ThoDTO.ThoResponseDTO;
@@ -89,17 +90,36 @@ public class ThoController {
         return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT);
     }
     }
-    @GetMapping("/timKiem")
-    public ResponseEntity<PageResponseDTO<ThoResponseDTO>> searchTho(
+   @GetMapping("/timKiem")
+    public ResponseEntity<ApiResponse<PageResponseDTO<ThoResponseDTO>>> searchTho(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
-            @RequestParam(required = false) String sortBy,
-            @RequestParam(required = false) String sortDirection,
+            @RequestParam(required = false, defaultValue = "ngayVaoLam") String sortBy, 
+            @RequestParam(required = false, defaultValue = "desc") String sortDirection,
             @RequestParam(required = false) String tenTho,
             @RequestParam(required = false) String chuyenMon,
             @RequestParam(required = false) Integer kinhNghiem,
-            @RequestParam(required = false) String trangThai) {
-        return ResponseEntity.ok(thoService.searchTho(page, size, sortBy, sortDirection, tenTho, chuyenMon, kinhNghiem, trangThai));
+            @RequestParam(required = false) String trangThai,
+            @RequestParam(required = false) String soDienThoai) { // <-- Đã sửa lỗi cú pháp tại đây
+        
+        try {
+            PageResponseDTO<ThoResponseDTO> result = thoService.searchTho(
+                page, size, sortBy, sortDirection, 
+                tenTho, chuyenMon, kinhNghiem, trangThai, soDienThoai 
+            );
+            
+            return ResponseEntity.ok(ApiResponse.success("Tìm kiếm thợ thành công", result));
+            
+        } catch (ResourceNotFoundException e) {
+             // Chỉ bắt nếu Service ném ResourceNotFound (ít khả năng xảy ra trong tìm kiếm)
+             return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                     .body(ApiResponse.error("Lỗi: " + e.getMessage()));
+                     
+        } catch (Exception e) {
+            // Bắt các lỗi khác (ví dụ: tham số không hợp lệ)
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(ApiResponse.error("Lỗi tìm kiếm thợ: " + e.getMessage()));
+        }
     }
 
     @GetMapping("/thongKe")

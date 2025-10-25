@@ -63,32 +63,37 @@ public class XeService {
     }
 
     // ================================================================
-    // TÌM KIẾM & PHÂN TRANG & SẮP XẾP
-    // ================================================================
-    /**
-     * Tìm kiếm xe theo các tiêu chí:
-     * - Biển số (contains)
-     * - Hãng xe (contains join)
-     * - Năm sản xuất (equals)
-     */
-    public PageResponseDTO<XeResponseDTO> searchXe(
-            int page, int size, String sortBy, String sortDirection,
-            String bienSo, String hangXe, Integer namSanXuat,
-            String mauSac, String trangThai) {
+// TÌM KIẾM & PHÂN TRANG & SẮP XẾP (ĐÃ CẬP NHẬT)
+// ================================================================
+/**
+ * Tìm kiếm xe theo các tiêu chí: Biển số, Hãng xe, Năm SX, Màu sắc, Trạng thái, và TÊN KHÁCH HÀNG.
+ */
+public PageResponseDTO<XeResponseDTO> searchXe(
+        int page, int size, String sortBy, String sortDirection,
+        String bienSo, String hangXe, Integer namSanXuat,
+        String mauSac, String trangThai, String tenKhachHang) { // <-- ĐÃ THÊM tham số tenKhachHang
 
-        Specification<Xe> spec = Specification.where(null);
-        spec = spec.and(JpaSpecificationUtil.attributeContains("bienSo", bienSo));
-        spec = spec.and(JpaSpecificationUtil.attributeContains("hangXe", hangXe));
-        spec = spec.and(JpaSpecificationUtil.attributeEquals("namSanXuat", namSanXuat));
-        spec = spec.and(JpaSpecificationUtil.attributeContains("mauSac", mauSac));
-        spec = spec.and(JpaSpecificationUtil.attributeContains("trangThai", trangThai));
+    Specification<Xe> spec = Specification.where(null);
+    
+    // Tìm kiếm cơ bản (LIKE/EQUAL)
+    spec = spec.and(JpaSpecificationUtil.attributeContains("bienSo", bienSo));
+    spec = spec.and(JpaSpecificationUtil.attributeContains("hangXe", hangXe));
+    spec = spec.and(JpaSpecificationUtil.attributeEquals("namSanXuat", namSanXuat));
+    spec = spec.and(JpaSpecificationUtil.attributeContains("mauSac", mauSac));
+    spec = spec.and(JpaSpecificationUtil.attributeContains("trangThai", trangThai));
 
-        Sort sort = SortUtils.createSort(sortBy, sortDirection, "maXe", Sort.Direction.DESC);
-        Pageable pageable = PageRequest.of(Math.max(0, page), Math.min(size, 100), sort);
+    // QUAN TRỌNG: TÌM KIẾM THEO TÊN KHÁCH HÀNG (JOIN)
+    // 1. "khachHang" là tên thuộc tính Entity trong Xe.java (mối quan hệ ManyToOne/OneToOne)
+    // 2. "tenKhachHang" là tên trường trong Entity KhachHang.java
+    spec = spec.and(JpaSpecificationUtil.attributeContainsJoin("khachHang", "tenKhachHang", tenKhachHang)); // <-- ĐÃ THÊM LOGIC JOIN
 
-        Page<Xe> xePage = xeRepository.findAll(spec, pageable);
-        return new PageResponseDTO<>(xePage.map(XeResponseDTO::new));
-    }
+    Sort sort = SortUtils.createSort(sortBy, sortDirection, "maXe", Sort.Direction.DESC);
+    Pageable pageable = PageRequest.of(Math.max(0, page), Math.min(size, 100), sort);
+
+    // Giả định XeRepository đã được cấu hình @EntityGraph hoặc fetch join để tránh N+1
+    Page<Xe> xePage = xeRepository.findAll(spec, pageable);
+    return new PageResponseDTO<>(xePage.map(XeResponseDTO::new));
+        }
 
     // ================================================================
     // THÊM MỚI XE

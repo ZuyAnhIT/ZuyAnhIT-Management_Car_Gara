@@ -94,18 +94,34 @@ public class ThoService {
     }
     public PageResponseDTO<ThoResponseDTO> searchTho(
         int page, int size, String sortBy, String sortDirection,
-        String tenTho, String chuyenMon,Integer kinhNghiem, String trangThai) {
+        String tenTho, String chuyenMon, Integer kinhNghiem, 
+        String trangThai, String soDienThoai) { // <-- ĐÃ THÊM: soDienThoai
 
     Specification<Tho> spec = Specification.where((Specification<Tho>) null)
+        // Tìm kiếm theo Tên Thợ (LIKE)
         .and(JpaSpecificationUtil.<Tho>attributeContains("tenTho", tenTho))
+        // Tìm kiếm theo Chuyên Môn (LIKE)
         .and(JpaSpecificationUtil.<Tho>attributeContains("chuyenMon", chuyenMon))
+        // Tìm kiếm theo Số Điện Thoại (LIKE)
+        .and(JpaSpecificationUtil.<Tho>attributeContains("soDienThoai", soDienThoai)) // <-- ĐÃ THÊM LOGIC TÌM KIẾM SĐT
+        // Tìm kiếm theo Kinh Nghiệm (EQUAL)
         .and(JpaSpecificationUtil.<Tho>attributeEquals("kinhNghiem", kinhNghiem))
+        // Tìm kiếm theo Trạng Thái (EQUAL)
         .and(JpaSpecificationUtil.<Tho>attributeEquals("trangThai", trangThai));
 
     Sort sort = SortUtils.createSort(sortBy, sortDirection, "ngayVaoLam", Sort.Direction.DESC);
+    
+    // Đảm bảo logic phân trang an toàn
+    page = Math.max(0, page);
+    size = Math.min(size, 100); 
+    size = Math.max(1, size);
+    
     Pageable pageable = PageRequest.of(page, size, sort);
 
     Page<Tho> thoPage = thoRepository.findAll(spec, pageable);
+    
+    // Sửa lại cách tạo PageResponseDTO để sử dụng constructor chuẩn (nếu DTO có constructor Page)
+    // Hoặc sử dụng cách bạn đã viết (chuyển đổi List)
     List<ThoResponseDTO> dtos = thoPage.getContent()
         .stream().map(ThoResponseDTO::new).collect(Collectors.toList());
 
