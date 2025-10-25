@@ -208,5 +208,27 @@ public org.springframework.http.ResponseEntity<
         }
     }
 
+    // [TÍNH NĂNG] Top 5 Dịch Vụ Sử Dụng Nhiều
+    @org.springframework.web.bind.annotation.GetMapping("/top-5-dich-vu")
+    public org.springframework.http.ResponseEntity<
+        com.example.gara_management.dto.ApiResponse<
+            java.util.List<com.example.gara_management.dto.BaoCaoThongKeDTO.TopDichVuDTO>
+        >
+    > getTop5DichVuSuDungNhieu() {
+        try {
+            var result = thongKeService.getTop5DichVuSuDungNhieu();
+            return org.springframework.http.ResponseEntity.ok(
+                com.example.gara_management.dto.ApiResponse.success(
+                    "Lấy top 5 dịch vụ sử dụng nhiều thành công", result
+                )
+            );
+        } catch (Exception e) {
+            return org.springframework.http.ResponseEntity
+                .status(org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(com.example.gara_management.dto.ApiResponse.error(
+                    "Lỗi hệ thống khi lấy top 5 dịch vụ: " + e.getMessage()
+                ));
+        }
+    }
 
 }

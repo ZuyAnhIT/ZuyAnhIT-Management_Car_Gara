@@ -447,4 +447,27 @@ public com.example.gara_management.dto.BaoCaoThongKeDTO.HoaDonThongKeDTO thongKe
         .build();
 }
 
+    // [TÍNH NĂNG] Top 5 Dịch Vụ Sử Dụng Nhiều
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
+    public java.util.List<com.example.gara_management.dto.BaoCaoThongKeDTO.TopDichVuDTO> getTop5DichVuSuDungNhieu() {
+        var pageable = org.springframework.data.domain.PageRequest.of(0, 5);
+        java.util.List<Object[]> rows = chiTietPhieuSuaChuaRepository.findTopDichVuByUsage(pageable);
+        java.util.List<com.example.gara_management.dto.BaoCaoThongKeDTO.TopDichVuDTO> result = new java.util.ArrayList<>();
+        if (rows != null) {
+            for (Object[] r : rows) {
+                Integer maDichVu = r[0] != null ? ((Number) r[0]).intValue() : null;
+                String tenDichVu = (String) r[1];
+                Long soLuong = r[2] != null ? ((Number) r[2]).longValue() : 0L;
+                result.add(
+                    com.example.gara_management.dto.BaoCaoThongKeDTO.TopDichVuDTO.builder()
+                        .maDichVu(maDichVu)
+                        .tenDichVu(tenDichVu)
+                        .soLuongSuDung(soLuong)
+                        .build()
+                );
+            }
+        }
+        return result;
+    }
+
 }
