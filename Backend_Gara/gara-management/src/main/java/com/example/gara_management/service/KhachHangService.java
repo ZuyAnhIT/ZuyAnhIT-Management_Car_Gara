@@ -214,4 +214,9 @@ public class KhachHangService {
         entity.setTrangThai("Đã xóa");
         return khachHangRepository.save(entity);
     }
+
+    // Tính tổng số khách hàng trong hệ thống
+    public long countAllCustomers() {
+        return khachHangRepository.count();
+    }
 }
