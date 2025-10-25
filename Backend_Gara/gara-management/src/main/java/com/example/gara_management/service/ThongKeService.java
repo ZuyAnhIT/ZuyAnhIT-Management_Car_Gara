@@ -49,7 +49,6 @@ public class ThongKeService {
     private final HoaDonRepository hoaDonRepository;
     private final PhieuSuaChuaRepository phieuSuaChuaRepository;
     private final ChiTietPhieuSuaChuaRepository chiTietPhieuSuaChuaRepository; // <-- THÊM DÒNG NÀY
-
     // ================================================================
     //  THỐNG KÊ TỔNG QUAN
     // ================================================================
@@ -369,4 +368,53 @@ public class ThongKeService {
             .sorted(Comparator.comparing(TiLeSuDungLoaiDichVuDTO::getSoLanSuDung).reversed())
             .collect(Collectors.toList());
     }
+// Báo cáo phiểu xửa chữa
+@org.springframework.transaction.annotation.Transactional(readOnly = true)
+public com.example.gara_management.dto.BaoCaoThongKeDTO.PhieuSuaChuaThongKeDTO thongKePhieuSuaChua() {
+
+    // Các biến thể trạng thái để an toàn với dữ liệu/encoding
+    final String[] PSC_DA_GIAO     = new String[] { "Đã giao", "Da giao" };
+    final String[] PSC_DANG_SUA    = new String[] { "Đang sửa", "Dang sua" };
+    final String[] PSC_CHO_XU_LY   = new String[] { "Chờ xử lý", "Ch? x? ly" };
+    final String[] HD_DA_TT        = new String[] { "Đã thanh toán", "Da thanh toan", "Da thanh to�n" };
+
+    long soDaGiao = 0L;
+    for (String s : PSC_DA_GIAO) {
+        Long c = phieuSuaChuaRepository.countByTrangThai(s);
+        if (c != null) soDaGiao += c;
+    }
+
+    long soDangSua = 0L;
+    for (String s : PSC_DANG_SUA) {
+        Long c = phieuSuaChuaRepository.countByTrangThai(s);
+        if (c != null) soDangSua += c;
+    }
+
+    long soChoXuLy = 0L;
+    for (String s : PSC_CHO_XU_LY) {
+        Long c = phieuSuaChuaRepository.countByTrangThai(s);
+        if (c != null) soChoXuLy += c;
+    }
+
+    java.math.BigDecimal tongDoanhThu = java.math.BigDecimal.ZERO;
+    for (String s : HD_DA_TT) {
+        java.util.List<com.example.gara_management.model.HoaDon> list =
+                hoaDonRepository.findByTrangThai(s);
+        if (list != null) {
+            for (com.example.gara_management.model.HoaDon hd : list) {
+                if (hd.getTongTien() != null) {
+                    tongDoanhThu = tongDoanhThu.add(hd.getTongTien());
+                }
+            }
+        }
+    }
+
+    return com.example.gara_management.dto.BaoCaoThongKeDTO.PhieuSuaChuaThongKeDTO.builder()
+            .soPhieuDaGiao(soDaGiao)
+            .soPhieuDangSua(soDangSua)
+            .soPhieuChoXuLy(soChoXuLy)
+            .tongDoanhThu(tongDoanhThu)
+            .build();
+}
+
 }

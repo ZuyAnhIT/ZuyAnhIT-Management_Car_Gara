@@ -21,5 +21,6 @@ public interface PhieuSuaChuaRepository extends JpaRepository<PhieuSuaChua, Inte
            "LEFT JOIN FETCH ct.dichVu " +
            "WHERE p.maPhieu = :maPhieu")
     PhieuSuaChua findByIdWithDetails(Integer maPhieu);
+    Long countByTrangThai(String trangThai);
 }
 

@@ -162,5 +162,28 @@ public class ThongKeController {
                     .body(ApiResponse.error("Lỗi hệ thống khi lấy tỉ lệ sử dụng loại dịch vụ: " + e.getMessage()));
         }
     }
+    // báo cáo phiếu sửa chữa
+    @org.springframework.web.bind.annotation.GetMapping("/phieu-sua-chua")
+public org.springframework.http.ResponseEntity<
+    com.example.gara_management.dto.ApiResponse<
+        com.example.gara_management.dto.BaoCaoThongKeDTO.PhieuSuaChuaThongKeDTO
+    >
+> thongKePhieuSuaChua() {
+    try {
+        var result = thongKeService.thongKePhieuSuaChua();
+        return org.springframework.http.ResponseEntity.ok(
+            com.example.gara_management.dto.ApiResponse.success(
+                "Lấy thống kê phiếu sửa chữa thành công", result
+            )
+        );
+    } catch (Exception e) {
+        return org.springframework.http.ResponseEntity
+            .status(org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR)
+            .body(com.example.gara_management.dto.ApiResponse.error(
+                "Lỗi hệ thống khi thống kê phiếu sửa chữa: " + e.getMessage()
+            ));
+    }
+}
+
 
 }
