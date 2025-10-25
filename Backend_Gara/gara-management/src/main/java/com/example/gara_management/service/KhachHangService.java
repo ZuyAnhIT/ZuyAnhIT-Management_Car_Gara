@@ -17,6 +17,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -218,5 +220,19 @@ public class KhachHangService {
     // Tính tổng số khách hàng trong hệ thống
     public long countAllCustomers() {
         return khachHangRepository.count();
+    }
+
+    // Tính số khách hàng theo loại
+    public Map<String, Long> countCustomersByType() {
+        Map<String, Long> result = new HashMap<>();
+
+        long doanhNghiep = khachHangRepository.countByLoaiKhach("Doanh nghiệp");
+        long caNhan = khachHangRepository.countByLoaiKhach("Cá nhân");
+
+        result.put("soKhachHangDoanhNghiep", doanhNghiep);
+        result.put("soKhachHangCaNhan", caNhan);
+        result.put("tongSoKhachHang", doanhNghiep + caNhan);
+
+        return result;
     }
 }

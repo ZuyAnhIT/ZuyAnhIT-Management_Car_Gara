@@ -14,6 +14,8 @@ import jakarta.validation.Valid;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @Tag(name = "Quản lý Khách Hàng", description = "API thêm, sửa, xóa, xem danh sách khách hàng trong hệ thống gara")
 @RestController
 @RequestMapping("/api/khachhang")
@@ -157,9 +159,16 @@ public class KhachHangController {
     }
 
     //  API tính số khách hàng trong hệ thống
-    @GetMapping("/count")
+    @GetMapping("/tinhtongkhachhang")
     public ResponseEntity<Long> countCustomers() {
         long count = khachHangService.countAllCustomers();
         return ResponseEntity.ok(count);
+    }
+
+    //  API: Đếm số khách hàng doanh nghiệp & cá nhân
+    @GetMapping("/tinhtongkhachhangtheoloai")
+    public ResponseEntity<Map<String, Long>> countCustomersByType() {
+        Map<String, Long> result = khachHangService.countCustomersByType();
+        return ResponseEntity.ok(result);
     }
 }
