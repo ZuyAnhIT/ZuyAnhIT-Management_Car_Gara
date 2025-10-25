@@ -18,4 +18,7 @@ public interface KhachHangRepository extends JpaRepository<KhachHang, Integer>, 
 
     //  Hàm đếm tổng số khách hàng trong hệ thống
     long count();
+
+    //  Đếm khách hàng theo loại ("Cá nhân" hoặc "Doanh nghiệp")
+    long countByLoaiKhach(String loaiKhach);
 }
