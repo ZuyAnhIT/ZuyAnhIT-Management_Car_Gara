@@ -15,7 +15,7 @@ import com.example.gara_management.dto.ThoDTO.ThoCreateDTO;
 import com.example.gara_management.dto.ThoDTO.ThoResponseDTO;
 import com.example.gara_management.dto.ThoDTO.ThoStatisticsDTO;
 import com.example.gara_management.dto.ThoDTO.ThoUpdateDTO;
-
+import java.util.List;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 @Tag(name = "Quản lý Thợ", description = "API thêm, sửa, xóa, xem thợ trong hệ thống gara")
@@ -90,37 +90,44 @@ public class ThoController {
         return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT);
     }
     }
-   @GetMapping("/timKiem")
-    public ResponseEntity<ApiResponse<PageResponseDTO<ThoResponseDTO>>> searchTho(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(required = false, defaultValue = "ngayVaoLam") String sortBy, 
-            @RequestParam(required = false, defaultValue = "desc") String sortDirection,
-            @RequestParam(required = false) String tenTho,
-            @RequestParam(required = false) String chuyenMon,
-            @RequestParam(required = false) Integer kinhNghiem,
-            @RequestParam(required = false) String trangThai,
-            @RequestParam(required = false) String soDienThoai) { // <-- Đã sửa lỗi cú pháp tại đây
-        
-        try {
-            PageResponseDTO<ThoResponseDTO> result = thoService.searchTho(
-                page, size, sortBy, sortDirection, 
-                tenTho, chuyenMon, kinhNghiem, trangThai, soDienThoai 
-            );
-            
-            return ResponseEntity.ok(ApiResponse.success("Tìm kiếm thợ thành công", result));
-            
-        } catch (ResourceNotFoundException e) {
-             // Chỉ bắt nếu Service ném ResourceNotFound (ít khả năng xảy ra trong tìm kiếm)
-             return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                     .body(ApiResponse.error("Lỗi: " + e.getMessage()));
-                     
-        } catch (Exception e) {
-            // Bắt các lỗi khác (ví dụ: tham số không hợp lệ)
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(ApiResponse.error("Lỗi tìm kiếm thợ: " + e.getMessage()));
-        }
+  @GetMapping("/timKiem")
+public ResponseEntity<PageResponseDTO<ThoResponseDTO>> searchTho(
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "10") int size,
+        @RequestParam(required = false, defaultValue = "ngayVaoLam") String sortBy, 
+        @RequestParam(required = false, defaultValue = "desc") String sortDirection,
+        @RequestParam(required = false) String tenTho,
+        @RequestParam(required = false) String chuyenMon,
+        @RequestParam(required = false) Integer kinhNghiem,
+        @RequestParam(required = false) String trangThai,
+        @RequestParam(required = false) String soDienThoai) {
+
+    try {
+        // ✅ Thành công
+        PageResponseDTO<ThoResponseDTO> result = thoService.searchTho(
+                page, size, sortBy, sortDirection,
+                tenTho, chuyenMon, kinhNghiem, trangThai, soDienThoai
+        );
+        return ResponseEntity.ok(result);
+
+    } catch (ResourceNotFoundException e) {
+        return buildErrorResponse(page, size, HttpStatus.NOT_FOUND);
+    } catch (Exception e) {
+        return buildErrorResponse(page, size, HttpStatus.INTERNAL_SERVER_ERROR);
     }
+}
+
+/**
+ * ✅ Helper method to create consistent empty page responses
+ */
+private ResponseEntity<PageResponseDTO<ThoResponseDTO>> buildErrorResponse(
+        int page, int size, HttpStatus status) {
+    
+    PageResponseDTO<ThoResponseDTO> emptyPage = new PageResponseDTO<>(
+            List.of(), page, size, 0L, 0, true
+    );
+    return new ResponseEntity<>(emptyPage, status);
+}
 
     @GetMapping("/thongKe")
 public ResponseEntity<?> getThoStatistics() {
