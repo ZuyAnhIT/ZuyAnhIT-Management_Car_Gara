@@ -1,5 +1,6 @@
 package com.example.gara_management.controller;
 
+import com.example.gara_management.dto.ApiResponse;
 import com.example.gara_management.dto.PageResponseDTO;
 import com.example.gara_management.dto.XeDTO.XeCreateDTO;
 import com.example.gara_management.dto.XeDTO.XeResponseDTO;
@@ -61,25 +62,34 @@ public class XeController {
      *
      * Ví dụ: /api/xe/timKiem?bienSo=51A&hangXe=Toyota&namSanXuat=2020
      */
-    @GetMapping("/timKiem")
-    public ResponseEntity<PageResponseDTO<XeResponseDTO>> searchXe(
+    // API TÌM KIẾM & PHÂN TRANG & SẮP XẾP (GET)
+    @GetMapping("/timKiem") 
+    public ResponseEntity<ApiResponse<PageResponseDTO<XeResponseDTO>>> searchXe(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
-            @RequestParam(required = false) String sortBy,
-            @RequestParam(required = false) String sortDirection,
-            @RequestParam(required = false) String bienSo,
-            @RequestParam(required = false) String hangXe,
+            @RequestParam(required = false, defaultValue = "maXe") String sortBy, 
+            @RequestParam(required = false, defaultValue = "desc") String sortDirection,
+            @RequestParam(required = false) String bienSo, 
+            @RequestParam(required = false) String hangXe, 
             @RequestParam(required = false) Integer namSanXuat,
             @RequestParam(required = false) String mauSac,
-            @RequestParam(required = false) String trangThai) {
+            @RequestParam(required = false) String trangThai,
+            @RequestParam(required = false) String tenKhachHang) { // <-- ĐÃ THÊM tham số
 
-        PageResponseDTO<XeResponseDTO> responseDTO =
-                xeService.searchXe(page, size, sortBy, sortDirection,
-                        bienSo, hangXe, namSanXuat, mauSac, trangThai);
-
-        return ResponseEntity.ok(responseDTO);
+        try {
+            PageResponseDTO<XeResponseDTO> responseDTO = 
+                xeService.searchXe(
+                    page, size, sortBy, sortDirection, 
+                    bienSo, hangXe, namSanXuat, mauSac, trangThai, 
+                    tenKhachHang // <-- TRUYỀN THAM SỐ MỚI
+                );
+            
+            return ResponseEntity.ok(ApiResponse.success("Tìm kiếm xe thành công", responseDTO));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("Lỗi hệ thống khi tìm kiếm xe: " + e.getMessage()));
+        }
     }
-
     // ======================
     //  API THÊM XE
     // ======================
