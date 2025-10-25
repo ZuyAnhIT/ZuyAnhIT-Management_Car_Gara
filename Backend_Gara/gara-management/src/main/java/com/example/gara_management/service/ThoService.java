@@ -93,11 +93,12 @@ public class ThoService {
     }
     public PageResponseDTO<ThoResponseDTO> searchTho(
         int page, int size, String sortBy, String sortDirection,
-        String tenTho, String chuyenMon, String trangThai) {
+        String tenTho, String chuyenMon,Integer kinhNghiem, String trangThai) {
 
     Specification<Tho> spec = Specification.where((Specification<Tho>) null)
         .and(JpaSpecificationUtil.<Tho>attributeContains("tenTho", tenTho))
         .and(JpaSpecificationUtil.<Tho>attributeContains("chuyenMon", chuyenMon))
+        .and(JpaSpecificationUtil.<Tho>attributeEquals("kinhNghiem", kinhNghiem))
         .and(JpaSpecificationUtil.<Tho>attributeEquals("trangThai", trangThai));
 
     Sort sort = SortUtils.createSort(sortBy, sortDirection, "ngayVaoLam", Sort.Direction.DESC);
