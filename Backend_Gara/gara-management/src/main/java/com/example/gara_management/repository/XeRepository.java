@@ -22,4 +22,9 @@ public interface XeRepository extends JpaRepository<Xe, Integer>, JpaSpecificati
 
     // 🔍 Tìm xe theo trạng thái (Hoạt động / Đã xóa / Bảo trì…)
     List<Xe> findByTrangThai(String trangThai);
+    // ✅ Đếm tổng số xe (JPA có sẵn count())
+    long count();
+
+    // ✅ Đếm xe đang hoạt động
+    long countByTrangThai(String trangThai);
 }
