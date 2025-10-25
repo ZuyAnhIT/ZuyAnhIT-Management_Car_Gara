@@ -12,6 +12,7 @@ import com.example.gara_management.service.ThoService;
 import com.example.gara_management.dto.PageResponseDTO;
 import com.example.gara_management.dto.ThoDTO.ThoCreateDTO;
 import com.example.gara_management.dto.ThoDTO.ThoResponseDTO;
+import com.example.gara_management.dto.ThoDTO.ThoStatisticsDTO;
 import com.example.gara_management.dto.ThoDTO.ThoUpdateDTO;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -100,5 +101,17 @@ public class ThoController {
             @RequestParam(required = false) String trangThai) {
         return ResponseEntity.ok(thoService.searchTho(page, size, sortBy, sortDirection, tenTho, chuyenMon, kinhNghiem, trangThai));
     }
+
+    @GetMapping("/thongKe")
+public ResponseEntity<?> getThoStatistics() {
+    try {
+        ThoStatisticsDTO stats = thoService.getThoStatistics();
+        return ResponseEntity.ok(stats); // trả về DTO
+    } catch (Exception e) {
+        // trả về String khi lỗi
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                             .body("Lỗi hệ thống: " + e.getMessage());
+    }
+}
 
 }   

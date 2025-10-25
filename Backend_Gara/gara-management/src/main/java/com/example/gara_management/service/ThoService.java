@@ -4,6 +4,7 @@ import com.example.gara_management.model.Tho;
 import com.example.gara_management.dto.PageResponseDTO;
 import com.example.gara_management.dto.ThoDTO.ThoCreateDTO;
 import com.example.gara_management.dto.ThoDTO.ThoResponseDTO;
+import com.example.gara_management.dto.ThoDTO.ThoStatisticsDTO;
 import com.example.gara_management.dto.ThoDTO.ThoUpdateDTO;
 import com.example.gara_management.exception.ResourceAlreadyExistsException;
 import com.example.gara_management.exception.ResourceNotFoundException;
@@ -110,6 +111,15 @@ public class ThoService {
 
     return new PageResponseDTO<>(dtos, thoPage.getNumber(), thoPage.getSize(),
             thoPage.getTotalElements(), thoPage.getTotalPages(), thoPage.isLast());
+}
+
+    @Transactional(readOnly = true)
+public ThoStatisticsDTO getThoStatistics() {
+    long totalTho = thoRepository.count(); // tổng số thợ
+    long kinhNghiemCao = thoRepository.countByKinhNghiemGreaterThan(3);
+    long kinhNghiemThap = thoRepository.countByKinhNghiemLessThanEqual(3);
+
+    return new ThoStatisticsDTO(totalTho, kinhNghiemCao, kinhNghiemThap);
 }
 
 
