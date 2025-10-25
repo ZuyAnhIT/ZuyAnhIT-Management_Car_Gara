@@ -1,7 +1,8 @@
 package com.example.gara_management.service;
 
 import com.example.gara_management.dto.DichVuDTO.DichVuCreateDTO;
-import com.example.gara_management.dto.DichVuDTO.DichVuResponseDTO; 
+import com.example.gara_management.dto.DichVuDTO.DichVuResponseDTO;
+import com.example.gara_management.dto.DichVuDTO.DichVuStatisticsDTO;
 import com.example.gara_management.dto.DichVuDTO.DichVuUpdateDTO;
 import com.example.gara_management.dto.PageResponseDTO;
 import com.example.gara_management.exception.ResourceAlreadyExistsException;
@@ -29,6 +30,7 @@ import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.math.BigDecimal;
 
 @Service
 @RequiredArgsConstructor
@@ -228,10 +230,26 @@ public class DichVuService {
         return dichVuRepository.save(entity);
     }
 
+    @Transactional(readOnly = true)
+public DichVuStatisticsDTO getDichVuStatistics() {
+    long total = dichVuRepository.count();
+    long sapHet = dichVuRepository.countByTrangThai("Sắp hết");
+    long conHang = dichVuRepository.countByTrangThai("Còn hàng");
+    long hetHang = dichVuRepository.countByTrangThai("Hết hàng");
 
+    // Tổng số lượng tồn
+    long tongSoLuongTon = dichVuRepository.findAll()
+                                .stream()
+                                .mapToLong(DichVu::getSoLuongTon)
+                                .sum();
 
+    // Tổng giá trị tồn kho
+    BigDecimal tongGiaTriTonKho = dichVuRepository.findAll()
+                                .stream()
+                                .map(d -> d.getGia().multiply(BigDecimal.valueOf(d.getSoLuongTon())))
+                                .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-
-    
+    return new DichVuStatisticsDTO(total, sapHet, conHang, hetHang, tongSoLuongTon, tongGiaTriTonKho);
+}    
 
 }
