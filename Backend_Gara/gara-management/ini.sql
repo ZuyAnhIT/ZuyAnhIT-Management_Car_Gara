@@ -11,11 +11,6 @@ CREATE USER IF NOT EXISTS 'admin123@'@'%' IDENTIFIED BY 'admin123@';
 GRANT ALL PRIVILEGES ON QuanLyGaraOto.* TO 'admin123@'@'%';
 FLUSH PRIVILEGES;
 
-
--- Tạo cơ sở dữ liệu
-CREATE DATABASE IF NOT EXISTS QuanLyGaraOto;
-USE QuanLyGaraOto;
-
 -- Bảng Khách Hàng
 CREATE TABLE KhachHang (
     MaKhachHang INT PRIMARY KEY AUTO_INCREMENT,
@@ -129,7 +124,7 @@ CREATE TABLE TaiKhoan (
 -- THÊM DỮ LIỆU MẪU
 -- ============================================
 
--- Thêm dữ liệu Khách Hàng
+-- Thêm 11 Khách Hàng
 INSERT INTO KhachHang (TenKhachHang, SoDienThoai, Email, TrangThai, DiaChi, LoaiKhach, GhiChu) VALUES
 ('Nguyễn Văn An', '0901234567', 'nguyenvanan@gmail.com', 'Hoạt động', '123 Lê Lợi, Quận 1, TP.HCM', 'Cá nhân', 'Khách hàng thân thiết'),
 ('Trần Thị Bình', '0912345678', 'tranthibinh@gmail.com', 'Hoạt động', '45 Nguyễn Huệ, Quận 1, TP.HCM', 'Cá nhân', NULL),
@@ -140,24 +135,24 @@ INSERT INTO KhachHang (TenKhachHang, SoDienThoai, Email, TrangThai, DiaChi, Loai
 ('Hoàng Văn Đức', '0967890123', 'hoangvanduc@gmail.com', 'Hoạt động', '78 Cách Mạng Tháng 8, Quận Tân Bình, TP.HCM', 'Cá nhân', NULL),
 ('Vũ Thị Mai', '0978901234', 'vuthimai@gmail.com', 'Hoạt động', '90 Phan Xích Long, Quận Phú Nhuận, TP.HCM', 'Cá nhân', 'Giới thiệu từ KH001'),
 ('Đặng Hoàng Nam', '0989012345', 'danghoangnam@gmail.com', 'Hoạt động', '156 Phan Đăng Lưu, Quận Phú Nhuận, TP.HCM', 'Cá nhân', NULL),
-('Bùi Thanh Tú', '0990123456', 'buithanhtu@gmail.com', 'Đã xóa', '234 Hai Bà Trưng, Quận 3, TP.HCM', 'Cá nhân', 'Khách hàng cũ');
+('Bùi Thanh Tú', '0990123456', 'buithanhtu@gmail.com', 'Hoạt động', '234 Hai Bà Trưng, Quận 3, TP.HCM', 'Cá nhân', NULL),
+('Ngô Văn Phong', '0992345678', 'ngovanphong@gmail.com', 'Hoạt động', '890 Lê Văn Sỹ, Quận Tân Bình, TP.HCM', 'Cá nhân', 'Khách hàng mới');
 
--- Thêm dữ liệu Xe
+-- Thêm 11 Xe với đủ các loại biển số
 INSERT INTO Xe (BienSo, HangXe, DongXe, NamSanXuat, MauSac, TrangThai, MaKhachHang) VALUES
-('51A-12345', 'Toyota', 'Vios', 2020, 'Trắng', 'Hoạt động', 1),
-('51B-67890', 'Honda', 'City', 2019, 'Đen', 'Hoạt động', 2),
+('29A-12345', 'Toyota', 'Vios', 2020, 'Trắng', 'Hoạt động', 1),
+('30B-67890', 'Honda', 'City', 2019, 'Đen', 'Hoạt động', 2),
 ('51C-11111', 'Mazda', 'CX-5', 2021, 'Đỏ', 'Hoạt động', 3),
-('51D-22222', 'Hyundai', 'Accent', 2018, 'Bạc', 'Hoạt động', 4),
-('51E-33333', 'Toyota', 'Camry', 2022, 'Đen', 'Hoạt động', 5),
-('51F-44444', 'Ford', 'Ranger', 2020, 'Xanh', 'Hoạt động', 6),
-('51G-55555', 'Kia', 'Morning', 2017, 'Trắng', 'Hoạt động', 7),
-('51H-66666', 'Vinfast', 'Lux A2.0', 2023, 'Xám', 'Hoạt động', 8),
-('51K-77777', 'Honda', 'CR-V', 2021, 'Trắng ngọc trai', 'Hoạt động', 3),
-('51L-88888', 'Mercedes', 'C-Class', 2022, 'Đen', 'Hoạt động', 5),
-('51M-99999', 'BMW', '320i', 2021, 'Xanh dương', 'Hoạt động', 9),
-('51N-00000', 'Audi', 'A4', 2020, 'Trắng', 'Đã xóa', 10);
+('59D-22222', 'Hyundai', 'Accent', 2018, 'Bạc', 'Hoạt động', 4),
+('43E-33333', 'Toyota', 'Camry', 2022, 'Đen', 'Hoạt động', 5),
+('17F-44444', 'Ford', 'Ranger', 2020, 'Xanh', 'Hoạt động', 6),
+('92G-55555', 'Kia', 'Morning', 2017, 'Trắng', 'Hoạt động', 7),
+('37H-66666', 'Vinfast', 'Lux A2.0', 2023, 'Xám', 'Hoạt động', 8),
+('51K-77777', 'Honda', 'CR-V', 2021, 'Trắng ngọc trai', 'Hoạt động', 9),
+('72L-88888', 'Mercedes', 'C-Class', 2022, 'Đen', 'Hoạt động', 10),
+('88M-99999', 'BMW', '320i', 2021, 'Xanh dương', 'Hoạt động', 11);
 
--- Thêm dữ liệu Loại Dịch Vụ
+-- Thêm 11 Loại Dịch Vụ
 INSERT INTO LoaiDichVu (TenLoai, TrangThai, NgayTao) VALUES
 ('Bảo dưỡng định kỳ', 'Hoạt động', '2024-01-01 08:00:00'),
 ('Sửa chữa động cơ', 'Hoạt động', '2024-01-01 08:00:00'),
@@ -165,28 +160,35 @@ INSERT INTO LoaiDichVu (TenLoai, TrangThai, NgayTao) VALUES
 ('Thay thế lốp xe', 'Hoạt động', '2024-01-01 08:00:00'),
 ('Sơn xe', 'Hoạt động', '2024-01-01 08:00:00'),
 ('Rửa xe & Chăm sóc ngoại thất', 'Hoạt động', '2024-01-01 08:00:00'),
-('Sửa chữa gầm xe', 'Hoạt động', '2024-01-01 08:00:00');
+('Sửa chữa gầm xe', 'Hoạt động', '2024-01-01 08:00:00'),
+('Thay dầu động cơ', 'Hoạt động', '2024-01-01 08:00:00'),
+('Kiểm tra phanh', 'Hoạt động', '2024-01-01 08:00:00'),
+('Bảo trì hệ thống làm mát', 'Hoạt động', '2024-01-01 08:00:00'),
+('Sửa chữa hộp số', 'Hoạt động', '2024-01-01 08:00:00');
 
--- Thêm dữ liệu Dịch Vụ
+-- Thêm 18 Dịch Vụ (phân bổ đều vào 11 loại)
+-- 3 dịch vụ sắp hết (SoLuongTon < 3), 2 dịch vụ hết hàng (SoLuongTon = 0)
 INSERT INTO DichVu (TenDichVu, MoTa, AnhDichVu, SoLuongTon, SoLuongBan, Gia, ThoiGianUocTinh, TrangThai, NgayTao, MaLoai) VALUES
-('Thay dầu máy', 'Thay dầu động cơ toàn phần, bao gồm dầu và lọc dầu', NULL, 50, 120, 350000, 30, 'Còn hàng', '2024-01-01 08:30:00', 1),
-('Bảo dưỡng 10000km', 'Bảo dưỡng định kỳ: thay dầu, lọc gió, kiểm tra toàn bộ', NULL, 30, 85, 800000, 90, 'Còn hàng', '2024-01-01 08:30:00', 1),
-('Thay phanh trước', 'Thay má phanh trước, bao gồm công và phụ tùng', NULL, 40, 65, 1200000, 60, 'Còn hàng', '2024-01-01 08:30:00', 7),
-('Thay bình ắc quy', 'Thay bình điện mới, bảo hành 12 tháng', NULL, 25, 48, 1500000, 20, 'Còn hàng', '2024-01-01 08:30:00', 3),
-('Sửa máy lạnh', 'Kiểm tra, bơm ga, sửa chữa hệ thống điều hòa', NULL, 15, 32, 800000, 120, 'Còn hàng', '2024-01-01 08:30:00', 3),
-('Thay lốp xe 1 bánh', 'Thay lốp mới, cân bằng, bao gồm công lắp đặt', NULL, 100, 210, 1800000, 30, 'Còn hàng', '2024-01-01 08:30:00', 4),
-('Rửa xe ô tô', 'Rửa xe bên ngoài và bên trong, hút bụi nội thất', NULL, 0, 350, 100000, 45, 'Còn hàng', '2024-01-01 08:30:00', 6),
-('Đánh bóng xe', 'Đánh bóng toàn bộ xe, phục hồi độ bóng sơn', NULL, 0, 95, 500000, 180, 'Còn hàng', '2024-01-01 08:30:00', 6),
-('Sơn phần cản trước', 'Sơn lại cản trước xe, bao gồm sơn và công', NULL, 10, 28, 2500000, 480, 'Còn hàng', '2024-01-01 08:30:00', 5),
-('Thay giảm xóc', 'Thay giảm xóc bộ 4, bao gồm phụ tùng và công', NULL, 20, 42, 3500000, 150, 'Còn hàng', '2024-01-01 08:30:00', 7),
-('Cân bằng động', 'Cân bằng động 4 bánh xe', NULL, 0, 180, 200000, 30, 'Còn hàng', '2024-01-01 08:30:00', 4),
-('Kiểm tra tổng quát', 'Kiểm tra toàn bộ xe trước khi đi xa', NULL, 0, 145, 300000, 60, 'Còn hàng', '2024-01-01 08:30:00', 1),
-('Thay dây curoa', 'Thay dây curoa mới, kiểm tra căng dây', NULL, 35, 52, 450000, 40, 'Còn hàng', '2024-01-01 08:30:00', 2),
-('Vệ sinh buồng đốt', 'Vệ sinh buồng đốt động cơ', NULL, 0, 68, 600000, 90, 'Còn hàng', '2024-01-01 08:30:00', 2),
-('Phủ ceramic', 'Phủ ceramic bảo vệ sơn xe', NULL, 5, 15, 3000000, 300, 'Còn hàng', '2024-01-01 08:30:00', 6),
-('Thay lọc gió động cơ', 'Thay lọc gió động cơ mới', NULL, 0, 92, 150000, 15, 'Hết hàng', '2024-01-01 08:30:00', 1);
+('Thay dầu máy', 'Thay dầu động cơ toàn phần, bao gồm dầu và lọc dầu', 'a1.jpg', 50, 120, 350000, 30, 'Còn hàng', '2024-01-01 08:30:00', 8),
+('Bảo dưỡng 10000km', 'Bảo dưỡng định kỳ: thay dầu, lọc gió, kiểm tra toàn bộ', 'a2.jpg', 30, 85, 800000, 90, 'Còn hàng', '2024-01-01 08:30:00', 1),
+('Thay phanh trước', 'Thay má phanh trước, bao gồm công và phụ tùng', 'a3.jpg', 2, 65, 1200000, 60, 'Sắp hết', '2024-01-01 08:30:00', 9),
+('Thay bình ắc quy', 'Thay bình điện mới, bảo hành 12 tháng', 'a4.jpg', 0, 48, 1500000, 20, 'Hết hàng', '2024-01-01 08:30:00', 3),
+('Sửa máy lạnh', 'Kiểm tra, bơm ga, sửa chữa hệ thống điều hòa', 'a5.jpg', 15, 32, 800000, 120, 'Còn hàng', '2024-01-01 08:30:00', 10),
+('Thay lốp xe 1 bánh', 'Thay lốp mới, cân bằng, bao gồm công lắp đặt', 'a6.jpg', 100, 210, 1800000, 30, 'Còn hàng', '2024-01-01 08:30:00', 4),
+('Rửa xe ô tô', 'Rửa xe bên ngoài và bên trong, hút bụi nội thất', 'a7.jpg', 45, 350, 100000, 45, 'Còn hàng', '2024-01-01 08:30:00', 6),
+('Đánh bóng xe', 'Đánh bóng toàn bộ xe, phục hồi độ bóng sơn', 'a8.jpg', 1, 95, 500000, 180, 'Sắp hết', '2024-01-01 08:30:00', 6),
+('Sơn phần cản trước', 'Sơn lại cản trước xe, bao gồm sơn và công', 'a9.jpg', 10, 28, 2500000, 480, 'Còn hàng', '2024-01-01 08:30:00', 5),
+('Thay giảm xóc', 'Thay giảm xóc bộ 4, bao gồm phụ tùng và công', 'a10.jpg', 20, 42, 3500000, 150, 'Còn hàng', '2024-01-01 08:30:00', 7),
+('Cân bằng động', 'Cân bằng động 4 bánh xe', 'a20.jpg', 0, 180, 200000, 30, 'Hết hàng', '2024-01-01 08:30:00', 4),
+('Kiểm tra tổng quát', 'Kiểm tra toàn bộ xe trước khi đi xa', 'a12.jpg', 25, 145, 300000, 60, 'Còn hàng', '2024-01-01 08:30:00', 1),
+('Thay dây curoa', 'Thay dây curoa mới, kiểm tra căng dây', 'a13.jpg', 35, 52, 450000, 40, 'Còn hàng', '2024-01-01 08:30:00', 2),
+('Vệ sinh buồng đốt', 'Vệ sinh buồng đốt động cơ', 'a14.jpg', 18, 68, 600000, 90, 'Còn hàng', '2024-01-01 08:30:00', 2),
+('Phủ ceramic', 'Phủ ceramic bảo vệ sơn xe', 'a15.jpg', 5, 15, 3000000, 300, 'Còn hàng', '2024-01-01 08:30:00', 6),
+('Thay lọc gió động cơ', 'Thay lọc gió động cơ mới', 'a16.jpg', 2, 92, 150000, 15, 'Sắp hết', '2024-01-01 08:30:00', 1),
+('Vệ sinh kim phun', 'Vệ sinh kim phun nhiên liệu', 'a17.jpg', 12, 38, 700000, 75, 'Còn hàng', '2024-01-01 08:30:00', 2),
+('Thay dầu hộp số', 'Thay dầu hộp số tự động/số sàn', 'a18.jpg', 28, 56, 950000, 50, 'Còn hàng', '2024-01-01 08:30:00', 11);
 
--- Thêm dữ liệu Thợ
+-- Thêm 11 Thợ
 INSERT INTO Tho (TenTho, ChuyenMon, SoDienThoai, Email, TrangThai, KinhNghiem, NgayVaoLam) VALUES
 ('Nguyễn Văn Tài', 'Sửa chữa động cơ', '0981111111', 'nguyenvantai@gara.vn', 'Hoạt động', 10, '2015-03-15 08:00:00'),
 ('Trần Minh Tuấn', 'Sửa chữa điện', '0982222222', 'tranminhtuan@gara.vn', 'Hoạt động', 8, '2017-06-01 08:00:00'),
@@ -195,62 +197,87 @@ INSERT INTO Tho (TenTho, ChuyenMon, SoDienThoai, Email, TrangThai, KinhNghiem, N
 ('Hoàng Văn Nam', 'Sửa chữa gầm xe', '0985555555', 'hoangvannam@gara.vn', 'Hoạt động', 9, '2016-11-05 08:00:00'),
 ('Vũ Quốc Thắng', 'Thay lốp, cân chỉnh', '0986666666', 'vuquocthang@gara.vn', 'Hoạt động', 5, '2020-02-14 08:00:00'),
 ('Đỗ Minh Quân', 'Chăm sóc ngoại thất', '0987777777', 'dominhquan@gara.vn', 'Hoạt động', 4, '2021-07-01 08:00:00'),
-('Bùi Văn Hùng', 'Sửa chữa động cơ', '0988888888', 'buivanhung@gara.vn', 'Đã xóa', 7, '2018-05-10 08:00:00');
+('Bùi Văn Hùng', 'Sửa chữa động cơ', '0988888888', 'buivanhung@gara.vn', 'Hoạt động', 7, '2018-05-10 08:00:00'),
+('Trần Quang Huy', 'Sửa chữa hộp số', '0989999999', 'tranquanghuy@gara.vn', 'Hoạt động', 11, '2014-08-20 08:00:00'),
+('Lý Văn Sơn', 'Điện và điện tử', '0980000000', 'lyvanson@gara.vn', 'Hoạt động', 6, '2019-03-12 08:00:00'),
+('Phùng Minh Đức', 'Bảo dưỡng định kỳ', '0981234567', 'phungminhduc@gara.vn', 'Hoạt động', 5, '2020-05-18 08:00:00');
 
--- Thêm dữ liệu Phiếu Sửa Chữa
+-- Thêm 18 Phiếu Sửa Chữa (phân bổ đều trong năm 2025 đến hiện tại 27/10/2025)
+-- 10 phiếu Đã giao, 2 phiếu Hoàn thành, 2 phiếu Đang sửa, 4 phiếu Chờ xử lý
 INSERT INTO PhieuSuaChua (MaXe, MaTho, NgayLap, MoTa, TrangThai, TongTien) VALUES
-(1, 4, '2024-10-01 09:00:00', 'Bảo dưỡng định kỳ 10000km', 'Hoàn thành', 800000),
-(2, 2, '2024-10-03 10:30:00', 'Sửa đèn pha không sáng, thay bình ắc quy', 'Hoàn thành', 1800000),
-(3, 1, '2024-10-05 08:15:00', 'Kiểm tra tiếng kêu động cơ', 'Đang sửa', 300000),
-(4, 6, '2024-10-06 14:00:00', 'Thay 2 lốp trước', 'Hoàn thành', 3600000),
-(5, 5, '2024-10-07 11:20:00', 'Thay má phanh trước và sau', 'Đã giao', 2400000),
-(6, 3, '2024-10-08 09:45:00', 'Sơn lại cản trước bị xước', 'Đang sửa', 2500000),
-(7, 7, '2024-10-09 13:00:00', 'Rửa xe và đánh bóng', 'Hoàn thành', 600000),
-(8, 4, '2024-10-10 08:30:00', 'Bảo dưỡng định kỳ, thay dầu', 'Chờ xử lý', 350000),
-(9, 2, '2024-10-11 15:00:00', 'Sửa máy lạnh không mát', 'Đang sửa', 800000),
-(10, 1, '2024-10-12 10:00:00', 'Kiểm tra tổng quát trước khi đi xa', 'Hoàn thành', 300000),
-(11, 4, '2024-10-13 09:30:00', 'Bảo dưỡng định kỳ 20000km', 'Hoàn thành', 1250000),
-(12, 3, '2024-10-14 14:20:00', 'Phủ ceramic toàn xe', 'Hoàn thành', 3000000),
-(1, 7, '2024-10-15 10:00:00', 'Rửa xe định kỳ', 'Hủy sửa', 0);
+(1, 4, '2025-01-15 09:00:00', 'Bảo dưỡng định kỳ 10000km', 'Đã giao', 800000),
+(2, 2, '2025-02-10 10:30:00', 'Thay bình ắc quy', 'Đã giao', 1500000),
+(3, 1, '2025-02-28 08:15:00', 'Vệ sinh buồng đốt động cơ', 'Đã giao', 900000),
+(4, 6, '2025-03-18 14:00:00', 'Thay 2 lốp trước', 'Đã giao', 3600000),
+(5, 5, '2025-04-05 11:20:00', 'Thay má phanh trước', 'Đã giao', 1200000),
+(6, 3, '2025-04-25 09:45:00', 'Sơn lại cản trước bị xước', 'Đã giao', 2500000),
+(7, 7, '2025-05-12 13:00:00', 'Rửa xe và đánh bóng', 'Đã giao', 600000),
+(8, 4, '2025-06-02 08:30:00', 'Thay dầu máy', 'Đã giao', 350000),
+(9, 2, '2025-06-20 15:00:00', 'Sửa máy lạnh không mát', 'Đã giao', 800000),
+(10, 1, '2025-07-08 10:00:00', 'Kiểm tra tổng quát trước khi đi xa', 'Đã giao', 300000),
+(11, 9, '2025-07-28 09:30:00', 'Thay dầu hộp số', 'Hoàn thành', 950000),
+(1, 7, '2025-08-15 10:00:00', 'Rửa xe định kỳ', 'Hoàn thành', 100000),
+(5, 8, '2025-09-05 11:30:00', 'Vệ sinh kim phun, thay lọc gió', 'Đang sửa', 850000),
+(6, 11, '2025-09-22 08:45:00', 'Bảo dưỡng 20000km', 'Đang sửa', 1250000),
+(8, 10, '2025-10-03 14:15:00', 'Kiểm tra hệ thống điện', 'Chờ xử lý', 500000),
+(9, 6, '2025-10-12 09:20:00', 'Cân bằng động, kiểm tra lốp', 'Chờ xử lý', 200000),
+(10, 4, '2025-10-20 10:30:00', 'Thay dầu máy, lọc gió cabin', 'Chờ xử lý', 550000),
+(11, 5, '2025-10-25 15:00:00', 'Thay giảm xóc', 'Chờ xử lý', 3500000);
 
--- Thêm dữ liệu Chi Tiết Phiếu Sửa Chữa
+-- Thêm Chi Tiết Phiếu Sửa Chữa (18 phiếu)
 INSERT INTO ChiTietPhieuSuaChua (MaPhieu, MaDichVu, SoLuong, DonGia) VALUES
 (1, 2, 1, 800000),
 (2, 4, 1, 1500000),
-(2, 12, 1, 300000),
+(3, 14, 1, 600000),
 (3, 12, 1, 300000),
 (4, 6, 2, 1800000),
-(5, 3, 2, 1200000),
+(5, 3, 1, 1200000),
 (6, 9, 1, 2500000),
 (7, 7, 1, 100000),
 (7, 8, 1, 500000),
 (8, 1, 1, 350000),
 (9, 5, 1, 800000),
 (10, 12, 1, 300000),
-(11, 2, 1, 800000),
-(11, 13, 1, 450000),
-(12, 15, 1, 3000000);
+(11, 18, 1, 950000),
+(12, 7, 1, 100000),
+(13, 17, 1, 700000),
+(13, 16, 1, 150000),
+(14, 2, 1, 800000),
+(14, 13, 1, 450000),
+(15, 12, 1, 500000),
+(16, 11, 1, 200000),
+(17, 1, 1, 350000),
+(17, 16, 1, 200000),
+(18, 10, 1, 3500000);
 
--- Thêm dữ liệu Hóa Đơn
+-- Thêm 18 Hóa Đơn (10 đã thanh toán cho phiếu đã giao, 8 chưa thanh toán cho các phiếu còn lại)
 INSERT INTO HoaDon (MaPhieu, NgayLapHoaDon, ThoiGianThanhCong, KieuThanhToan, TrangThai, TongTien) VALUES
-(1, '2024-10-01 16:00:00', '2024-10-01 16:05:00', 'Tiền mặt', 'Đã thanh toán', 800000),
-(2, '2024-10-03 17:30:00', '2024-10-03 17:32:00', 'Chuyển khoản', 'Đã thanh toán', 1800000),
-(4, '2024-10-06 18:00:00', '2024-10-06 18:03:00', 'Thẻ', 'Đã thanh toán', 3600000),
-(5, '2024-10-07 16:45:00', '2024-10-07 16:50:00', 'Chuyển khoản', 'Đã thanh toán', 2400000),
-(7, '2024-10-09 15:30:00', '2024-10-09 15:35:00', 'Tiền mặt', 'Đã thanh toán', 600000),
-(10, '2024-10-12 17:00:00', '2024-10-12 17:02:00', 'Tiền mặt', 'Đã thanh toán', 300000),
-(6, '2024-10-13 09:00:00', NULL, 'Chuyển khoản', 'Chưa thanh toán', 2500000),
-(8, '2024-10-13 10:30:00', NULL, 'Tiền mặt', 'Chưa thanh toán', 350000),
-(11, '2024-10-13 17:00:00', '2024-10-13 17:10:00', 'Chuyển khoản', 'Đã thanh toán', 1250000),
-(12, '2024-10-14 18:00:00', '2024-10-14 18:05:00', 'Thẻ', 'Đã thanh toán', 3000000);
+(1, '2025-01-15 16:00:00', '2025-01-15 16:05:00', 'Tiền mặt', 'Đã thanh toán', 800000),
+(2, '2025-02-10 17:30:00', '2025-02-10 17:32:00', 'Chuyển khoản', 'Đã thanh toán', 1500000),
+(3, '2025-02-28 15:20:00', '2025-02-28 15:25:00', 'Tiền mặt', 'Đã thanh toán', 900000),
+(4, '2025-03-18 18:00:00', '2025-03-18 18:03:00', 'Thẻ', 'Đã thanh toán', 3600000),
+(5, '2025-04-05 16:45:00', '2025-04-05 16:50:00', 'Chuyển khoản', 'Đã thanh toán', 1200000),
+(6, '2025-04-25 17:30:00', '2025-04-25 17:35:00', 'Tiền mặt', 'Đã thanh toán', 2500000),
+(7, '2025-05-12 15:30:00', '2025-05-12 15:35:00', 'Tiền mặt', 'Đã thanh toán', 600000),
+(8, '2025-06-02 14:00:00', '2025-06-02 14:05:00', 'Chuyển khoản', 'Đã thanh toán', 350000),
+(9, '2025-06-20 18:00:00', '2025-06-20 18:10:00', 'Thẻ', 'Đã thanh toán', 800000),
+(10, '2025-07-08 17:00:00', '2025-07-08 17:02:00', 'Tiền mặt', 'Đã thanh toán', 300000),
+(11, '2025-07-28 16:30:00', NULL, 'Chuyển khoản', 'Chưa thanh toán', 950000),
+(12, '2025-08-15 12:30:00', NULL, 'Tiền mặt', 'Chưa thanh toán', 100000),
+(13, '2025-09-05 11:30:00', NULL, 'Chuyển khoản', 'Chưa thanh toán', 850000),
+(14, '2025-09-22 08:45:00', NULL, 'Thẻ', 'Chưa thanh toán', 1250000),
+(15, '2025-10-03 14:15:00', NULL, 'Tiền mặt', 'Chưa thanh toán', 500000),
+(16, '2025-10-12 09:20:00', NULL, 'Chuyển khoản', 'Chưa thanh toán', 200000),
+(17, '2025-10-20 10:30:00', NULL, 'Tiền mặt', 'Chưa thanh toán', 550000),
+(18, '2025-10-25 15:00:00', NULL, 'Chuyển khoản', 'Chưa thanh toán', 3500000);
 
--- Thêm dữ liệu Tài Khoản
+-- Thêm 2 Tài Khoản (1 Quản lý, 1 Nhân viên)
 INSERT INTO TaiKhoan (TenDangNhap, MatKhau, VaiTro, TrangThai, Email, NgayTao) VALUES
-('admin', 'admin123', 'Quản lý', 'Hoạt động', 'admin@gara.vn', '2024-01-01 08:00:00'),
-('nhanvien01', 'nv123456', 'Nhân viên', 'Hoạt động', 'nhanvien01@gara.vn', '2024-01-15 08:00:00');
+('admin123', '$2a$12$k6tA8Fr8wFwNL3uUTGyUwO4CJmT/W3MMwRs01ZGh.uCc.CpUco8hi', 'Quản lý', 'Hoạt động', 'admin@gara.vn', '2024-01-01 08:00:00'),
+('nhanvien123', '$2a$12$k6tA8Fr8wFwNL3uUTGyUwO4CJmT/W3MMwRs01ZGh.uCc.CpUco8hi', 'Nhân viên', 'Hoạt động', 'nhanvien01@gara.vn', '2024-01-15 08:00:00');
 
 -- Trigger tự động cập nhật trạng thái dịch vụ
-DELIMITER $$
+DELIMITER $
 
 CREATE TRIGGER trg_cap_nhat_trang_thai_dich_vu
 BEFORE UPDATE ON DichVu
@@ -266,6 +293,6 @@ BEGIN
             SET NEW.TrangThai = 'Còn hàng';
         END IF;
     END IF;
-END$$
+END$
 
 DELIMITER ;
