@@ -165,61 +165,70 @@ public class KhachHangService {
      */
     @Transactional
     public KhachHang updateKhachHang(Integer maKhachHang, KhachHangUpdateDTO updateDTO) {
-        
-        // 1. Tìm Khách hàng hiện tại
-        KhachHang existingKH = khachHangRepository.findById(maKhachHang)
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy Khách Hàng với Mã: " + maKhachHang));
+    
+    // 1️⃣ Tìm khách hàng hiện tại
+    KhachHang existingKH = khachHangRepository.findById(maKhachHang)
+            .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy Khách Hàng với Mã: " + maKhachHang));
 
-        // --- 2. Cập nhật Số Điện Thoại (Kiểm tra trùng) ---
-        String newSdt = updateDTO.getSoDienThoai();
-        if (newSdt != null && !newSdt.trim().isEmpty()) {
-            khachHangRepository.findBySoDienThoai(newSdt).ifPresent(kh -> {
-                if (!kh.getMaKhachHang().equals(maKhachHang)) {
-                    throw new ResourceAlreadyExistsException("Số điện thoại đã được sử dụng bởi khách hàng khác: " + newSdt);
+    // 2️⃣ Cập nhật số điện thoại (nếu có)
+    Optional.ofNullable(updateDTO.getSoDienThoai())
+            .filter(s -> !s.trim().isEmpty())
+            .ifPresent(sdtRaw -> {
+                // Chuẩn hóa
+                String normalizedPhone = normalizePhoneNumber(sdtRaw);
+
+                // Kiểm tra định dạng
+                if (!normalizedPhone.matches("^0\\d{9}$")) {
+                    throw new IllegalArgumentException("Số điện thoại không hợp lệ sau chuẩn hóa (phải có 10 chữ số và bắt đầu bằng 0)");
                 }
+
+                // Kiểm tra trùng (dùng số đã chuẩn hóa)
+                khachHangRepository.findBySoDienThoai(normalizedPhone).ifPresent(kh -> {
+                    if (!kh.getMaKhachHang().equals(maKhachHang)) {
+                        throw new ResourceAlreadyExistsException("Số điện thoại đã được sử dụng bởi khách hàng khác: " + normalizedPhone);
+                    }
+                });
+
+                // Cập nhật
+                existingKH.setSoDienThoai(normalizedPhone);
             });
-            existingKH.setSoDienThoai(newSdt);
-        }
 
-        // --- 3. Cập nhật Email (Kiểm tra trùng) ---
-        String newEmail = updateDTO.getEmail();
-        if (newEmail != null && !newEmail.trim().isEmpty()) {
-            khachHangRepository.findByEmail(newEmail).ifPresent(kh -> {
-                if (!kh.getMaKhachHang().equals(maKhachHang)) {
-                    throw new ResourceAlreadyExistsException("Email đã được sử dụng bởi khách hàng khác: " + newEmail);
-                }
+    // 3️⃣ Cập nhật email (nếu có)
+    Optional.ofNullable(updateDTO.getEmail())
+            .filter(s -> !s.trim().isEmpty())
+            .ifPresent(email -> {
+                khachHangRepository.findByEmail(email).ifPresent(kh -> {
+                    if (!kh.getMaKhachHang().equals(maKhachHang)) {
+                        throw new ResourceAlreadyExistsException("Email đã được sử dụng bởi khách hàng khác: " + email);
+                    }
+                });
+                existingKH.setEmail(email);
             });
-            existingKH.setEmail(newEmail);
-        }
-        
-        // --- 4. Cập nhật các trường còn lại (Sử dụng Optional để kiểm tra null) ---
-        // Tên Khách Hàng
-        Optional.ofNullable(updateDTO.getTenKhachHang())
-                .filter(s -> !s.trim().isEmpty())
-                .ifPresent(existingKH::setTenKhachHang);
-        
-        // Địa Chỉ
-        Optional.ofNullable(updateDTO.getDiaChi())
-                .filter(s -> !s.trim().isEmpty())
-                .ifPresent(existingKH::setDiaChi);
 
-        // Loại Khách
-        Optional.ofNullable(updateDTO.getLoaiKhach())
-                .filter(s -> !s.trim().isEmpty())
-                .ifPresent(existingKH::setLoaiKhach);
+    // 4️⃣ Cập nhật các trường còn lại
+    Optional.ofNullable(updateDTO.getTenKhachHang())
+            .filter(s -> !s.trim().isEmpty())
+            .ifPresent(existingKH::setTenKhachHang);
 
-        // Ghi Chú
-        // Ghi chú có thể là chuỗi rỗng để xóa nội dung
-        Optional.ofNullable(updateDTO.getGhiChu()).ifPresent(existingKH::setGhiChu);
+    Optional.ofNullable(updateDTO.getDiaChi())
+            .filter(s -> !s.trim().isEmpty())
+            .ifPresent(existingKH::setDiaChi);
 
-        // Trạng Thái
-        Optional.ofNullable(updateDTO.getTrangThai())
-                .filter(s -> !s.trim().isEmpty())
-                .ifPresent(existingKH::setTrangThai);
-        
-        // 5. Lưu và trả về
-        return khachHangRepository.save(existingKH);
-    }
+    Optional.ofNullable(updateDTO.getLoaiKhach())
+            .filter(s -> !s.trim().isEmpty())
+            .ifPresent(existingKH::setLoaiKhach);
+
+    Optional.ofNullable(updateDTO.getGhiChu())
+            .ifPresent(existingKH::setGhiChu);
+
+    Optional.ofNullable(updateDTO.getTrangThai())
+            .filter(s -> !s.trim().isEmpty())
+            .ifPresent(existingKH::setTrangThai);
+
+    // 5️⃣ Lưu lại
+    return khachHangRepository.save(existingKH);
+}
+
 
     // 🧠 SOFT DELETE
     @Transactional

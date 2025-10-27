@@ -62,7 +62,7 @@ public class KhachHangController {
         } catch (Exception e) {
             // Xử lý các lỗi khác (500 Internal Server Error)
             // Cần log lỗi chi tiết ở đây
-            return new ResponseEntity<>("Lỗi hệ thống khi thêm khách hàng.", HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>("Lỗi hệ thống: " +e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
