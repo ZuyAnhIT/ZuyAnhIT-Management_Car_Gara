@@ -12,6 +12,7 @@ import com.example.gara_management.exception.ResourceNotFoundException;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.*;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -36,7 +37,14 @@ public class KhachHangController {
      * URL: POST /api/khachhang
      */
     @PostMapping("them")
-    public ResponseEntity<?> createKhachHang(@Valid @RequestBody KhachHangCreateDTO createDTO) {
+    public ResponseEntity<?> createKhachHang(@Valid @RequestBody KhachHangCreateDTO createDTO, BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            String errorMessages = bindingResult.getFieldErrors().stream()
+                .map(error -> error.getField() + ": " + error.getDefaultMessage())
+                .reduce((msg1, msg2) -> msg1 + "; " + msg2)
+                .orElse("Dữ liệu không hợp lệ");
+            return new ResponseEntity<>(errorMessages, HttpStatus.BAD_REQUEST);
+        }
         try {
             // 1. Gọi Service để thực hiện logic nghiệp vụ
             KhachHang newKhachHang = khachHangService.themKhachHang(createDTO);
@@ -111,7 +119,15 @@ public class KhachHangController {
     @PutMapping("/{maKhachHang}")
     public ResponseEntity<?> updateKhachHang(
             @PathVariable Integer maKhachHang, 
-            @Valid @RequestBody KhachHangUpdateDTO updateDTO) {
+            @Valid @RequestBody KhachHangUpdateDTO updateDTO,
+            BindingResult bindingResult) {
+             if (bindingResult.hasErrors()) {
+            String errorMessages = bindingResult.getFieldErrors().stream()
+                .map(error -> error.getField() + ": " + error.getDefaultMessage())
+                .reduce((msg1, msg2) -> msg1 + "; " + msg2)
+                .orElse("Dữ liệu không hợp lệ");
+            return new ResponseEntity<>(errorMessages, HttpStatus.BAD_REQUEST);
+        }
         try {
             // 1. Gọi Service để cập nhật
             KhachHang updatedKH = khachHangService.updateKhachHang(maKhachHang, updateDTO);
