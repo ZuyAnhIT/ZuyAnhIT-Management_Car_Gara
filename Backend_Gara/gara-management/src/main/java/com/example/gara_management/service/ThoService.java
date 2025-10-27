@@ -31,21 +31,40 @@ public class ThoService {
     public ThoService(ThoRepository thoRepository){
         this.thoRepository = thoRepository;
     }
+    
+    private String normalizePhoneNumber(String phone) {
+        if (phone == null) return null;
+        phone = phone.replaceAll("\\s+", "");
+        if (phone.startsWith("+84")) {
+            phone = "0" + phone.substring(3);
+        } else if (phone.startsWith("84")) {
+            phone = "0" + phone.substring(2);
+        }
+        return phone;
+    }
 
     @Transactional
     public Tho createTho(ThoCreateDTO dto){
+        
+        // Chuẩn hóa số điện thoại
+            String normalizedPhone = normalizePhoneNumber(dto.getSoDienThoai());
+
+        // Kiểm tra độ dài và định dạng sau chuẩn hóa
+            if (!normalizedPhone.matches("^0\\d{9}$")) {
+                throw new IllegalArgumentException("Số điện thoại không hợp lệ sau chuẩn hóa (phải có 10 chữ số và bắt đầu bằng 0)");
+            }
+        thoRepository.findBySoDienThoai(dto.getSoDienThoai()).ifPresent(m -> {
+            throw new ResourceAlreadyExistsException("Số điện thoại đã tồn tại: " + dto.getSoDienThoai());
+        });
         thoRepository.findByEmail(dto.getEmail()).ifPresent(m -> {
             throw new ResourceAlreadyExistsException("Email đã tồn tại: " + dto.getEmail());
-        });
-     thoRepository.findBySoDienThoai(dto.getSoDienThoai()).ifPresent(m -> {
-            throw new ResourceAlreadyExistsException("Số điện thoại đã tồn tại: " + dto.getSoDienThoai());
         });
 
         Tho tho = new Tho(
             null,
             dto.getTenTho(),
             dto.getChuyenMon(),
-            dto.getSoDienThoai(),
+            normalizedPhone,
             dto.getEmail(),
             "Hoạt động",
             dto.getKinhNghiem(),
@@ -71,7 +90,20 @@ public class ThoService {
 
         if (dto.getTenTho() != null) tho.setTenTho(dto.getTenTho());
         if (dto.getChuyenMon() != null) tho.setChuyenMon(dto.getChuyenMon());
-        if (dto.getSoDienThoai() != null) tho.setSoDienThoai(dto.getSoDienThoai());
+        
+        if (dto.getSoDienThoai() != null) {
+            String normalizedPhone = normalizePhoneNumber(dto.getSoDienThoai());
+            if (!normalizedPhone.matches("^0\\d{9}$")) {
+                throw new IllegalArgumentException("Số điện thoại không hợp lệ sau chuẩn hóa (phải có 10 chữ số và bắt đầu bằng 0)");
+            }
+            // Kiểm tra trùng (trừ chính nó)
+            thoRepository.findBySoDienThoai(normalizedPhone).ifPresent(existing -> {
+                if (!existing.getMaTho().equals(id)) {
+                    throw new ResourceAlreadyExistsException("Số điện thoại đã tồn tại: " + normalizedPhone);
+                }
+            });
+            tho.setSoDienThoai(normalizedPhone);
+        }
         if (dto.getEmail() != null) tho.setEmail(dto.getEmail());
         if (dto.getKinhNghiem() != null) tho.setKinhNghiem(dto.getKinhNghiem());
 
