@@ -19,6 +19,7 @@ import com.example.gara_management.exception.ResourceNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import jakarta.validation.Valid;
@@ -40,18 +41,28 @@ public class DichVuController {
     // 1. API THÊM DỊCH VỤ (POST - MULTIPART)
     // ====================================================================
     //@PreAuthorize("hasAuthority('Quản lý')") 
-    @PostMapping(value = "them", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = "/them", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<DichVuResponseDTO>> createService(
             @Valid @ModelAttribute DichVuCreateDTO createDTO,
+            BindingResult bindingResult,
             @RequestParam(value = "imageFile", required = false) MultipartFile imageFile) {
+
+        if (bindingResult.hasErrors()) {
+            String errorMessages = bindingResult.getFieldErrors().stream()
+                    .map(error -> error.getField() + ": " + error.getDefaultMessage())
+                    .reduce((msg1, msg2) -> msg1 + "; " + msg2)
+                    .orElse("Dữ liệu không hợp lệ");
+            return ResponseEntity.badRequest().body(ApiResponse.error(errorMessages));
+        }
+
         try {
-            DichVu result = dichVuService.addService(createDTO, imageFile); 
-            DichVuResponseDTO responseDTO = new DichVuResponseDTO(result); 
+            DichVu result = dichVuService.addService(createDTO, imageFile);
+            DichVuResponseDTO responseDTO = new DichVuResponseDTO(result);
 
             return ResponseEntity.status(HttpStatus.CREATED)
-                    .body(ApiResponse.success("Thêm dịch vụ thành công", responseDTO)); 
-            
-        } catch (ResourceNotFoundException | ResourceAlreadyExistsException e) {
+                    .body(ApiResponse.success("Thêm dịch vụ thành công", responseDTO));
+
+        } catch (ResourceAlreadyExistsException | ResourceNotFoundException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(ApiResponse.error("Lỗi nghiệp vụ: " + e.getMessage()));
         } catch (Exception e) {
@@ -66,21 +77,30 @@ public class DichVuController {
     //@PreAuthorize("hasAuthority('Quản lý')")
     @PutMapping(value = "/{maDichVu}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<DichVuResponseDTO>> updateService(
-            @PathVariable Integer maDichVu, 
-            @Valid @ModelAttribute DichVuUpdateDTO updateDTO, 
+            @PathVariable Integer maDichVu,
+            @Valid @ModelAttribute DichVuUpdateDTO updateDTO,
+            BindingResult bindingResult,
             @RequestParam(value = "imageFile", required = false) MultipartFile imageFile) {
+
+        if (bindingResult.hasErrors()) {
+            String errorMessages = bindingResult.getFieldErrors().stream()
+                    .map(error -> error.getField() + ": " + error.getDefaultMessage())
+                    .reduce((msg1, msg2) -> msg1 + "; " + msg2)
+                    .orElse("Dữ liệu không hợp lệ");
+            return ResponseEntity.badRequest().body(ApiResponse.error(errorMessages));
+        }
+
         try {
             DichVu updatedEntity = dichVuService.updateService(maDichVu, updateDTO, imageFile);
-            
             DichVuResponseDTO responseDTO = new DichVuResponseDTO(updatedEntity);
-            
+
             return ResponseEntity.ok(ApiResponse.success("Cập nhật dịch vụ thành công", responseDTO));
-            
+
         } catch (ResourceNotFoundException | ResourceAlreadyExistsException | IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(ApiResponse.error(e.getMessage()));
         } catch (Exception e) {
-             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(ApiResponse.error("Lỗi hệ thống khi cập nhật dịch vụ: " + e.getMessage()));
         }
     }
