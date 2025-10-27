@@ -15,7 +15,8 @@ public class KhachHangUpdateDTO {
 
     // Số Điện Thoại: VARCHAR(15)
     @Size(max = 15, message = "Số điện thoại không được dài quá 15 ký tự.")
-    @Pattern(regexp = "^(0|\\+84)(3|5|7|8|9)\\d{8}$", message = "Số điện thoại Việt Nam không hợp lệ.")
+    @Pattern(regexp = "^(\\+84|84|0)\\s?(3|5|7|8|9)\\d{1,2}\\s?\\d{3}\\s?\\d{3}$", 
+            message = "Số điện thoại Việt Nam không hợp lệ")
     private String soDienThoai; 
 
     // Email: VARCHAR(50)

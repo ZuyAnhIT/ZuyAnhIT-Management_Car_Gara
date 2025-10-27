@@ -30,29 +30,46 @@ public class KhachHangService {
     public KhachHangService(KhachHangRepository khachHangRepository) {
         this.khachHangRepository = khachHangRepository;
     }
-
+    private String normalizePhoneNumber(String phone) {
+        if (phone == null) return null;
+        phone = phone.replaceAll("\\s+", "");
+        if (phone.startsWith("+84")) {
+            phone = "0" + phone.substring(3);
+        } else if (phone.startsWith("84")) {
+            phone = "0" + phone.substring(2);
+        }
+        return phone;
+    }
     /**
      * 🧠 Thêm mới khách hàng
      * - Kiểm tra trùng số điện thoại và email
      * - Lưu dữ liệu mới vào DB
      */
-    @Transactional
+   @Transactional
     public KhachHang themKhachHang(KhachHangCreateDTO dto) {
 
+        // Chuẩn hóa số điện thoại
+        String normalizedPhone = normalizePhoneNumber(dto.getSoDienThoai());
+
+        // Kiểm tra độ dài và định dạng sau chuẩn hóa
+        if (!normalizedPhone.matches("^0\\d{9}$")) {
+            throw new IllegalArgumentException("Số điện thoại không hợp lệ sau chuẩn hóa (phải có 10 chữ số và bắt đầu bằng 0)");
+        }
+
         // 🔍 Kiểm tra trùng số điện thoại
-        khachHangRepository.findBySoDienThoai(dto.getSoDienThoai()).ifPresent(kh -> {
-            throw new ResourceAlreadyExistsException(" So dien thoai ton tai: " + dto.getSoDienThoai());
+        khachHangRepository.findBySoDienThoai(normalizedPhone).ifPresent(kh -> {
+            throw new ResourceAlreadyExistsException("Số điện thoại đã tồn tại: " + normalizedPhone);
         });
 
         // 🔍 Kiểm tra trùng email
         khachHangRepository.findByEmail(dto.getEmail()).ifPresent(kh -> {
-            throw new ResourceAlreadyExistsException(" Email da ton tai: " + dto.getEmail());
+            throw new ResourceAlreadyExistsException("Email đã tồn tại: " + dto.getEmail());
         });
 
         // 🧱 Chuyển DTO → Entity
         KhachHang newKH = new KhachHang();
         newKH.setTenKhachHang(dto.getTenKhachHang());
-        newKH.setSoDienThoai(dto.getSoDienThoai());
+        newKH.setSoDienThoai(normalizedPhone); 
         newKH.setEmail(dto.getEmail());
         newKH.setDiaChi(dto.getDiaChi());
         newKH.setLoaiKhach(dto.getLoaiKhach());
@@ -61,6 +78,7 @@ public class KhachHangService {
 
         return khachHangRepository.save(newKH);
     }
+
 
     // ----------------------------------------------------------------------
     // --- PHƯƠNG THỨC 1: CHỈ HIỂN THỊ DANH SÁCH & SẮP XẾP ---
