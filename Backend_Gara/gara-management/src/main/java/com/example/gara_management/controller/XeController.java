@@ -13,6 +13,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -30,12 +31,8 @@ public class XeController {
     }
 
     // ==========================================================
-    //  API HIỂN THỊ DANH SÁCH & SẮP XẾP
+    //  HIỂN THỊ DANH SÁCH XE
     // ==========================================================
-    /**
-     * Endpoint GET để lấy danh sách xe (không có tìm kiếm/lọc).
-     * Ví dụ: /api/xe/hienThiDanhSach?sortBy=maXe&sortDirection=asc
-     */
     @GetMapping("/hienThiDanhSach")
     public ResponseEntity<PageResponseDTO<XeResponseDTO>> getAllXe(
             @RequestParam(defaultValue = "0") int page,
@@ -45,148 +42,130 @@ public class XeController {
 
         PageResponseDTO<XeResponseDTO> responseDTO =
                 xeService.getAllXe(page, size, sortBy, sortDirection);
-
         return ResponseEntity.ok(responseDTO);
     }
 
     // ==========================================================
-    //  API TÌM KIẾM, PHÂN TRANG & SẮP XẾP
+    //  TÌM KIẾM XE
     // ==========================================================
-    /**
-     * Endpoint GET để tìm kiếm xe theo các tiêu chí:
-     * - Biển số (contains)
-     * - Hãng xe (contains)
-     * - Năm sản xuất (equals)
-     * - Màu sắc (contains)
-     * - Trạng thái (contains)
-     *
-     * Ví dụ: /api/xe/timKiem?bienSo=51A&hangXe=Toyota&namSanXuat=2020
-     */
-    // API TÌM KIẾM & PHÂN TRANG & SẮP XẾP (GET)
-    @GetMapping("/timKiem") 
+    @GetMapping("/timKiem")
     public ResponseEntity<ApiResponse<PageResponseDTO<XeResponseDTO>>> searchXe(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
-            @RequestParam(required = false, defaultValue = "maXe") String sortBy, 
+            @RequestParam(required = false, defaultValue = "maXe") String sortBy,
             @RequestParam(required = false, defaultValue = "desc") String sortDirection,
-            @RequestParam(required = false) String bienSo, 
-            @RequestParam(required = false) String hangXe, 
+            @RequestParam(required = false) String bienSo,
+            @RequestParam(required = false) String hangXe,
             @RequestParam(required = false) Integer namSanXuat,
             @RequestParam(required = false) String mauSac,
             @RequestParam(required = false) String trangThai,
-            @RequestParam(required = false) String tenKhachHang) { // <-- ĐÃ THÊM tham số
+            @RequestParam(required = false) String tenKhachHang) {
 
         try {
-            PageResponseDTO<XeResponseDTO> responseDTO = 
-                xeService.searchXe(
-                    page, size, sortBy, sortDirection, 
-                    bienSo, hangXe, namSanXuat, mauSac, trangThai, 
-                    tenKhachHang // <-- TRUYỀN THAM SỐ MỚI
-                );
-            
+            PageResponseDTO<XeResponseDTO> responseDTO = xeService.searchXe(
+                    page, size, sortBy, sortDirection,
+                    bienSo, hangXe, namSanXuat, mauSac, trangThai, tenKhachHang
+            );
+
             return ResponseEntity.ok(ApiResponse.success("Tìm kiếm xe thành công", responseDTO));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(ApiResponse.error("Lỗi hệ thống khi tìm kiếm xe: " + e.getMessage()));
         }
     }
-    // ======================
-    //  API THÊM XE
-    // ======================
-    /**
-     * Endpoint POST để thêm xe mới.
-     * Ví dụ: POST /api/xe/them
-     */
+
+    // ==========================================================
+    //  THÊM XE
+    // ==========================================================
     @PostMapping("/them")
-    public ResponseEntity<?> createXe(@Valid @RequestBody XeCreateDTO createDTO) {
+    public ResponseEntity<?> createXe(
+            @Valid @RequestBody XeCreateDTO createDTO,
+            BindingResult bindingResult) {
+
+        if (bindingResult.hasErrors()) {
+            String errorMessages = bindingResult.getFieldErrors().stream()
+                    .map(error -> error.getField() + ": " + error.getDefaultMessage())
+                    .reduce((msg1, msg2) -> msg1 + "; " + msg2)
+                    .orElse("Dữ liệu không hợp lệ");
+            return new ResponseEntity<>(errorMessages, HttpStatus.BAD_REQUEST);
+        }
+
         try {
             Xe newXe = xeService.createXe(createDTO);
-
-            // Trả về đối tượng xe mới và mã HTTP 201
             return new ResponseEntity<>(newXe, HttpStatus.CREATED);
 
         } catch (ResourceNotFoundException e) {
-            // Nếu không tìm thấy Khách Hàng
             return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
 
         } catch (ResourceAlreadyExistsException e) {
-            // Nếu biển số xe bị trùng
             return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT);
 
         } catch (Exception e) {
-            // Lỗi hệ thống khác
             return new ResponseEntity<>("Lỗi hệ thống khi thêm xe: " + e.getMessage(),
                     HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
-
     // ==========================================================
-    //  API CẬP NHẬT XE
+    //  CẬP NHẬT XE
     // ==========================================================
-        /**
-         * Endpoint PUT để cập nhật thông tin xe (partial update).
-         * Ví dụ: PUT /api/xe/{maXe}
-         */
-        @PutMapping("/{maXe}")
-        public ResponseEntity<?> updateXe(
-                @PathVariable Integer maXe,
-                @Valid @RequestBody XeUpdateDTO updateDTO) {
-            try {
-                Xe updatedXe = xeService.updateXe(maXe, updateDTO);
-                return ResponseEntity.ok(updatedXe);
+    @PutMapping("/{maXe}")
+    public ResponseEntity<?> updateXe(
+            @PathVariable Integer maXe,
+            @Valid @RequestBody XeUpdateDTO updateDTO,
+            BindingResult bindingResult) {
 
-            } catch (ResourceNotFoundException e) {
-                // Không tìm thấy xe
-                return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
-
-            } catch (ResourceAlreadyExistsException e) {
-                // Biển số bị trùng
-                return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT);
-
-            } catch (IllegalArgumentException e) {
-                // Dữ liệu không hợp lệ (ví dụ: trạng thái sai)
-                return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
-
-            } catch (Exception e) {
-                // Lỗi hệ thống
-                return new ResponseEntity<>("Lỗi hệ thống khi cập nhật xe: " + e.getMessage(),
-                        HttpStatus.INTERNAL_SERVER_ERROR);
-            }
+        if (bindingResult.hasErrors()) {
+            String errorMessages = bindingResult.getFieldErrors().stream()
+                    .map(error -> error.getField() + ": " + error.getDefaultMessage())
+                    .reduce((msg1, msg2) -> msg1 + "; " + msg2)
+                    .orElse("Dữ liệu không hợp lệ");
+            return new ResponseEntity<>(errorMessages, HttpStatus.BAD_REQUEST);
         }
 
-    // ==========================================================
-    //  API XÓA MỀM XE
-    // ==========================================================
-        /**
-         * Endpoint DELETE để thực hiện xóa mềm (Soft Delete) xe.
-         * @param maXe Mã xe cần xóa.
-         * @return ResponseEntity chứa đối tượng đã xóa mềm hoặc thông báo lỗi.
-         */
-        @DeleteMapping("/{maXe}")
-        public ResponseEntity<?> softDeleteXe(@PathVariable Integer maXe) {
-            try {
-                // Gọi Service để thực hiện xóa mềm
-                Xe deletedXe = xeService.softDeleteXe(maXe);
+        try {
+            Xe updatedXe = xeService.updateXe(maXe, updateDTO);
+            return ResponseEntity.ok(updatedXe);
 
-                // Trả về đối tượng đã được xóa mềm với HTTP Status 200 OK
-                return ResponseEntity.ok(deletedXe);
+        } catch (ResourceNotFoundException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
 
-            } catch (ResourceNotFoundException e) {
-                // Không tìm thấy xe (404 Not Found)
-                return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+        } catch (ResourceAlreadyExistsException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT);
 
-            } catch (IllegalStateException e) {
-                // Xe đã bị xóa trước đó (409 Conflict)
-                return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT);
+        } catch (IllegalArgumentException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
 
-            } catch (Exception e) {
-                // Lỗi hệ thống (500 Internal Server Error)
-                return new ResponseEntity<>("Lỗi hệ thống khi xóa mềm xe: " + e.getMessage(),
-                        HttpStatus.INTERNAL_SERVER_ERROR);
-            }
+        } catch (Exception e) {
+            return new ResponseEntity<>("Lỗi hệ thống khi cập nhật xe: " + e.getMessage(),
+                    HttpStatus.INTERNAL_SERVER_ERROR);
         }
-    // 🔸 API thống kê xe
+    }
+
+    // ==========================================================
+    //  XÓA MỀM XE
+    // ==========================================================
+    @DeleteMapping("/{maXe}")
+    public ResponseEntity<?> softDeleteXe(@PathVariable Integer maXe) {
+        try {
+            Xe deletedXe = xeService.softDeleteXe(maXe);
+            return ResponseEntity.ok(deletedXe);
+
+        } catch (ResourceNotFoundException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+
+        } catch (IllegalStateException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT);
+
+        } catch (Exception e) {
+            return new ResponseEntity<>("Lỗi hệ thống khi xóa mềm xe: " + e.getMessage(),
+                    HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    // ==========================================================
+    //  THỐNG KÊ XE
+    // ==========================================================
     @GetMapping("/thongKeXe")
     public ResponseEntity<Map<String, Long>> thongKeXe() {
         Map<String, Long> data = xeService.thongKeXe();
