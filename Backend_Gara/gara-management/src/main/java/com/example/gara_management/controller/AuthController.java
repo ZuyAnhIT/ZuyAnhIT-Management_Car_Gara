@@ -31,7 +31,14 @@ public class AuthController {
 
     // Đăng nhập
     @PostMapping("/dangNhap")
-    public ResponseEntity<ApiResponse<AuthResponse>> login(@Valid @RequestBody LoginRequest request) {
+    public ResponseEntity<ApiResponse<AuthResponse>> login(@Valid @RequestBody LoginRequest request, BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            String errorMessages = bindingResult.getFieldErrors().stream()
+                .map(error -> error.getField() + ": " + error.getDefaultMessage())
+                .reduce((msg1, msg2) -> msg1 + "; " + msg2)
+                .orElse("Dữ liệu không hợp lệ");
+            return ResponseEntity.badRequest().body(ApiResponse.error(errorMessages));
+        }
         try {
             AuthResponse response = authService.login(request);
             return ResponseEntity.ok(ApiResponse.success("Đăng nhập thành công", response));
@@ -43,7 +50,14 @@ public class AuthController {
     
     // Đăng ký
     @PostMapping("/dangKy")
-    public ResponseEntity<ApiResponse<AuthResponse>> register(@Valid @RequestBody RegisterRequest request) {
+    public ResponseEntity<ApiResponse<AuthResponse>> register(@Valid @RequestBody RegisterRequest request, BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            String errorMessages = bindingResult.getFieldErrors().stream()
+                .map(error -> error.getField() + ": " + error.getDefaultMessage())
+                .reduce((msg1, msg2) -> msg1 + "; " + msg2)
+                .orElse("Dữ liệu không hợp lệ");
+            return ResponseEntity.badRequest().body(ApiResponse.error(errorMessages));
+        }
         try {
             AuthResponse response = authService.register(request);
             return ResponseEntity.status(HttpStatus.CREATED)
@@ -56,18 +70,28 @@ public class AuthController {
     
     // Đổi mật khẩu
     @PutMapping("/doiMatKhau")
-    public ResponseEntity<ApiResponse<String>> changePassword(
-            Authentication authentication,
-            @Valid @RequestBody ChangePasswordRequest request) {
-        try {
-            String username = authentication.getName();
-            authService.changePassword(username, request);
-            return ResponseEntity.ok(ApiResponse.success("Đổi mật khẩu thành công", null));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(ApiResponse.error("Lỗi: " + e.getMessage()));
-        }
+public ResponseEntity<ApiResponse<String>> changePassword(
+        Authentication authentication,
+        @Valid @RequestBody ChangePasswordRequest request,
+        BindingResult bindingResult) { // ✅ Added this
+    if (bindingResult.hasErrors()) {
+        String errorMessages = bindingResult.getFieldErrors().stream()
+            .map(error -> error.getField() + ": " + error.getDefaultMessage())
+            .reduce((msg1, msg2) -> msg1 + "; " + msg2)
+            .orElse("Dữ liệu không hợp lệ");
+        return new ResponseEntity<>(ApiResponse.error(errorMessages), HttpStatus.BAD_REQUEST);
     }
+
+    try {
+        String username = authentication.getName();
+        authService.changePassword(username, request);
+        return ResponseEntity.ok(ApiResponse.success("Đổi mật khẩu thành công", null));
+    } catch (Exception e) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.error("Lỗi: " + e.getMessage()));
+    }
+}
+
     // ====================== THỐNG KÊ TÀI KHOẢN ======================
     @GetMapping("/thongKeTaiKhoan")
     public ResponseEntity<Map<String, Long>> thongKeTaiKhoan() {
