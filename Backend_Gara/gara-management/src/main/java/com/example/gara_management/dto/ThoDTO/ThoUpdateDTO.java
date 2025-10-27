@@ -16,10 +16,8 @@ public class ThoUpdateDTO {
     private String chuyenMon;
 
     @NotBlank(message =  "Số điện thoại không được để trống" )
-    @Pattern(
-        regexp = "^(0[0-9]{9}|\\+84\\s?[0-9]{9})$",
-        message = "Số điện thoại VN không hợp lệ (vd: 0901234567, +84901234567, hoặc +84 901234567)"
-    )
+    @Pattern(regexp = "^(\\+84|84|0)\\s?(3|5|7|8|9)\\d{1,2}\\s?\\d{3}\\s?\\d{3}$", 
+            message = "Số điện thoại Việt Nam không hợp lệ")
     private String soDienThoai;
 
     @NotBlank(message =  "Email không được để trống" )
